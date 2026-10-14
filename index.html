@@ -44,7 +44,7 @@ header .tb:active{background:rgba(255,255,255,.28)}
 main{padding:14px 13px 6px;max-width:760px;margin:0 auto}
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);
 padding-bottom:env(safe-area-inset-bottom);z-index:8;box-shadow:0 -6px 20px rgba(15,23,42,.06)}
-nav button{flex:1;border:0;background:none;color:var(--mut);padding:9px 2px 8px;font:inherit;font-size:11px;
+nav button{flex:1;min-width:0;border:0;background:none;color:var(--mut);padding:9px 1px 8px;font:inherit;font-size:10.5px;
 position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
 nav button b{font-size:20px;line-height:1.05;font-weight:400}
 nav button.on{color:var(--pri)}
@@ -158,6 +158,66 @@ padding:3px 9px;font:700 13px ui-monospace,Menlo,Consolas,monospace;margin-botto
 .stat span{font-size:11.5px;color:var(--mut)}
 .loc-group{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:8px 0}
 .loc-group h4{margin:2px 0 4px;font-size:14px;display:flex;align-items:center;gap:6px}
+/* màn nhặt hàng toàn màn hình */
+.pickscreen{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column}
+.pickscreen .ph{background:linear-gradient(135deg,var(--pri),var(--pri-d));color:#fff;padding:calc(10px + env(safe-area-inset-top)) 12px 10px}
+.pickscreen .ph .t{display:flex;align-items:center;gap:10px}
+.pickscreen .ph .t b{flex:1;min-width:0;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickscreen .ph .sub{font-size:12.5px;opacity:.9;margin:3px 2px 0}
+.pickscreen .bar{height:9px;border-radius:9px;background:rgba(255,255,255,.28);margin-top:9px;overflow:hidden}
+.pickscreen .bar i{display:block;height:100%;background:#fff;width:0;transition:width .25s}
+.pickscreen .pl{flex:1;overflow:auto;padding:10px 12px 14px;-webkit-overflow-scrolling:touch}
+.pickscreen .pf{display:flex;gap:9px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line)}
+.pickscreen .pf .btn{flex:1}
+.pk{display:flex;gap:12px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:16px;
+padding:13px;margin:9px 0;box-shadow:var(--shadow);user-select:none;-webkit-user-select:none}
+.pk:active{transform:scale(.99)}
+.pk .cb{width:34px;height:34px;border-radius:11px;border:3px solid var(--line);flex:none;display:grid;place-items:center;
+color:#fff;font-size:20px;font-weight:800}
+.pk .bd{flex:1;min-width:0}
+.pk .qt{font-size:26px;font-weight:800;letter-spacing:-.5px;text-align:right;flex:none;line-height:1}
+.pk .qt small{display:block;font-size:11px;font-weight:600;color:var(--mut);letter-spacing:0;margin-top:3px}
+.pk .nm{font-weight:700;font-size:15px;line-height:1.25}
+.pk.done{border-color:var(--ok);background:var(--okbg)}
+.pk.done .cb{background:var(--ok);border-color:var(--ok)}
+.pk.done .nm,.pk.done .qt{opacity:.6;text-decoration:line-through}
+.pk .who{font-size:11.5px;color:var(--ok);font-weight:600;margin-top:2px}
+.pk .sug{font-size:12px;color:var(--warn);margin-top:3px;font-weight:600}
+.lochd{display:flex;align-items:center;gap:8px;margin:16px 2px 2px;font:800 18px ui-monospace,Menlo,Consolas,monospace;color:var(--pri-ink)}
+.lochd span{font:600 12px system-ui;color:var(--mut)}
+.pbar{height:7px;border-radius:7px;background:var(--tap);overflow:hidden;margin-top:8px}
+.pbar i{display:block;height:100%;background:var(--pri);transition:width .25s}
+.pbar.full i{background:var(--ok)}
+.allok{background:var(--okbg);color:var(--ok);font-weight:800;text-align:center;padding:12px;border-radius:14px;margin:8px 0}
+/* phiếu xuất: nhặt lần lượt */
+.doc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:2px 0 10px}
+.doc .ttl{font-weight:800;font-size:15px;letter-spacing:.5px;text-align:center;color:var(--pri-ink)}
+.doc dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:8px 0 0;font-size:13.5px}
+.doc dt{color:var(--mut)}.doc dd{margin:0;font-weight:600;word-break:break-word}
+.nx{background:linear-gradient(135deg,var(--pri),var(--pri-d));color:#fff;border-radius:18px;padding:14px;margin:6px 0 12px;
+box-shadow:var(--shadow)}
+.nx .tag{font-size:11.5px;font-weight:800;letter-spacing:.08em;opacity:.9}
+.nx .lc{font:800 30px/1.15 ui-monospace,Menlo,Consolas,monospace;margin:4px 0 2px;word-break:break-all}
+.nx .nm{font-size:17px;font-weight:700;line-height:1.25}
+.nx .meta{font-size:12.5px;opacity:.92;margin-top:3px}
+.nx .q{font-size:38px;font-weight:800;line-height:1;margin:10px 0 2px}
+.nx .q small{font-size:15px;font-weight:700;opacity:.9;margin-left:4px}
+.nx .btn{width:100%;background:#fff;color:var(--pri-d);margin-top:10px;font-size:18px;min-height:56px}
+.nx .skip{font-size:12px;opacity:.85;margin-top:8px}
+.tbl{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.tbl .th,.tbl .pr{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:10px 12px}
+.tbl .th{background:var(--tap);font-size:11.5px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.tbl .pr{border-top:1px solid var(--line)}
+.tbl .pr:active{background:var(--tap)}
+.tbl .pr .no{width:30px;height:30px;border-radius:50%;background:var(--tap);display:grid;place-items:center;font-weight:800;font-size:13px}
+.tbl .pr .nm{font-weight:700;font-size:14.5px;line-height:1.25}
+.tbl .pr .lc{font:800 13px ui-monospace,Menlo,Consolas,monospace;color:var(--pri-ink);text-align:right}
+.tbl .pr .q{font-weight:800;font-size:18px;text-align:right}
+.tbl .pr.cur{background:var(--pri2);box-shadow:inset 4px 0 0 var(--pri)}
+.tbl .pr.cur .no{background:var(--pri);color:#fff}
+.tbl .pr.done{opacity:.55}
+.tbl .pr.done .no{background:var(--ok);color:#fff}
+.tbl .pr.done .nm{text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -185,7 +245,19 @@ document.addEventListener("input", e => {
   if (v !== t.value) t.value = v;
 }, true);
 
-const APP_VER = "v12";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+// mã hàng dùng gần đây (lưu trên máy) – chạm là chọn, khỏi gõ lại
+const RECENT_KEY = "kho_recent";
+function recentList() { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; } }
+function pushRecent(ma) { try { localStorage.setItem(RECENT_KEY, JSON.stringify([ma, ...recentList().filter(x => x !== ma)].slice(0, 10))); } catch {} }
+function renderRecent(box, onPick, onlyStock) {
+  if (!box) return;
+  const list = recentList().filter(ma => itemView(ma) && (!onlyStock || S.inStock.has(ma))).slice(0, 8);
+  box.innerHTML = list.length ? `<div class="pick-hd">Dùng gần đây</div><div class="picks">${list.map(ma =>
+    `<button type="button" data-r="${esc(ma)}"><span class="code">${esc(ma)}</span></button>`).join("")}</div>` : "";
+  box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
+}
+
+const APP_VER = "v14";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -196,7 +268,7 @@ if (!cfg || !cfg.url || !cfg.anonKey) {
 const sb = supabase.createClient(cfg.url, cfg.anonKey);
 
 const PAGE = 60;
-const TABS = [["ton","🔎","Tồn kho"],["nhap","📥","Nhập"],["xuat","📤","Xuất"],["kk","✅","Kiểm kê"],["phieu","🧾","Phiếu"]];
+const TABS = [["ton","🔎","Tồn kho"],["nhap","📥","Nhập"],["xuat","📤","Xuất"],["nhat","🧺","Nhặt"],["kk","✅","Kiểm kê"],["phieu","🧾","Phiếu"]];
 const LS_ME = "kho_me";
 const S = {
   tab: "ton", me: null, isAdmin: false,
@@ -295,7 +367,9 @@ function quickPicks(items, keys, q, n = 6) {
   const s = items.filter(x => keys.some(k => String(x[k] || "").toLowerCase().startsWith(q)));
   return (s.length ? s : withSearch(items, keys, q)).slice(0, n);
 }
-const itemView = ma => S.items.find(i => i.ma === ma);
+// tra mã không phân biệt hoa/thường (có mã như "Roasted Chicken"); luôn dùng it.ma (mã gốc) khi ghi phiếu
+const itemView = ma => { const k = String(ma || "").trim(); if (!k) return undefined;
+  return S.items.find(i => i.ma === k) || S.items.find(i => String(i.ma).trim().toLowerCase() === k.toLowerCase()); };
 const vnName = o => ((o && (o.ten_vn || "").trim()) || (o && o.ten) || "");
 const nameOf = (ma, fb) => { const it = itemView(ma); return vnName(it) || fb || ""; };
 const ruleName = { FIFO: "FIFO · nhập trước xuất trước", FEFO: "FEFO · hạn dùng gần nhất trước", LIFO: "LIFO · nhập sau xuất trước" };
@@ -345,19 +419,25 @@ function renderLogin(force) {
     <label>Tên đăng nhập</label><input id="u" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" enterkeyhint="next">
     <label>Mật khẩu</label><input id="p" type="password" autocapitalize="none" autocorrect="off" autocomplete="current-password" enterkeyhint="go">
     <p><button class="btn" style="width:100%" id="go">Đăng nhập</button></p></div>
-    <p class="hintline" style="text-align:center">Tài khoản do quản trị tạo (dạng <i>ten@kho.local</i>) · ${APP_VER}</p>
+    <p class="hintline" style="text-align:center">Chỉ cần gõ tên đăng nhập (VD <i>lead1</i>) · ${APP_VER}</p>
     <p class="hintline" style="text-align:center">⚠ Nếu bấm vào ô mà <b>không hiện bàn phím</b>: đang mở trong app (Telegram/Zalo/Facebook). Hãy mở bằng <b>Chrome</b> (Android) / <b>Safari</b> (iPhone) — hoặc <b>⋯ → Mở bằng trình duyệt</b>.</p></div>`;
   const go = async () => {
     const u = $("#u").value.trim().toLowerCase(), p = $("#p").value;
     if (!u || !p) return;
     busy($("#go"), true, "Đang vào…");
-    const { error } = await sb.auth.signInWithPassword({ email: `${u}@kho.local`, password: p });
-    if (error) { busy($("#go"), false); return toast("Sai tên đăng nhập hoặc mật khẩu.", true); }
+    const email = u.includes("@") ? u : `${u}@kho.local`;   // chấp nhận cả "ten" lẫn "ten@kho.local"
+    const { error } = await sb.auth.signInWithPassword({ email, password: p });
+    if (error) {
+      busy($("#go"), false);
+      return toast(/invalid login|credentials/i.test(error.message)
+        ? "Sai tên đăng nhập hoặc mật khẩu (hoặc tài khoản chưa được tạo trên Supabase)."
+        : "Lỗi đăng nhập: " + error.message, true);
+    }
     startApp((await sb.auth.getSession()).data.session);
   };
   $("#go").onclick = go;
-  $("#u").onkeydown = e => e.key === "Enter" && $("#p").focus();
-  $("#p").onkeydown = e => e.key === "Enter" && go();
+  $("#u").onkeydown = e => { if (e.key === "Enter") $("#p").focus(); };
+  $("#p").onkeydown = e => { if (e.key === "Enter") go(); };
 }
 function renderQuickOpen(me) {
   $("#app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -410,7 +490,8 @@ function go(tab) {
 function refreshCurrent(forceRef) {
   if (forceRef) refreshRef(true);
   const y = window.scrollY;
-  ({ ton: viewStock, nhap: viewReceive, xuat: viewIssue, kk: viewStocktake, phieu: viewVouchers })[S.tab]();
+  ({ ton: viewStock, nhap: viewReceive, xuat: viewIssue, nhat: viewPickList, kk: viewStocktake, phieu: viewVouchers })[S.tab]();
+  if (S.tab !== 'nhat') clearInterval(S.pkListTimer);
   const sub = $("#sub"); if (sub) sub.textContent = `${sub.textContent} · ${APP_VER}`;
   if (!forceRef) window.scrollTo(0, y); else window.scrollTo(0, 0);
 }
@@ -466,7 +547,7 @@ function viewStock() {
   $("#q").oninput = e => { S.q = e.target.value.trim(); const c = $("#clr"); if (c) c.style.display = S.q ? "block" : "none"; onType(); };
   $("#clr").onclick = () => { S.q = ""; S.offset = 0; viewStock(); };
   $("#vgo").onclick = () => { S.viTri = $("#vt").value.trim().toUpperCase(); S.q = ""; S.offset = 0; loadStock(); };
-  $("#vt").onkeydown = e => e.key === "Enter" && $("#vgo").click();
+  $("#vt").onkeydown = e => { if (e.key === "Enter") $("#vgo").click(); };
   $$(".seg button").forEach(b => b.onclick = () => { S.filter = b.dataset.f; S.offset = 0; viewStock(); });
   loadStock();
 }
@@ -636,30 +717,32 @@ function viewIssue() {
       <label>Thêm mặt hàng (chỉ mã đang có tồn)</label>
       <div class="row"><input id="ma" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên" enterkeyhint="next">${scanBtn("ma")}</div>
       <div id="tip" class="mut" style="margin-top:5px;min-height:18px"></div>
-      <div id="picksh"></div>
+      <div id="picksh"></div><div id="recent"></div>
       <div class="row" style="margin-top:2px"><input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num placeholder="Số lượng" enterkeyhint="done"><button class="btn fit" id="add" style="min-width:56px">＋</button></div>
       <div id="order"></div>
     </div>
     <p class="hintline">Hệ thống tự lấy lô theo <b>${esc(S.xuatRule)}</b> (nhập trước xuất trước, bỏ hàng hết hạn). Bấm <b>Xem &amp; xuất kho</b> để xem lấy ở đâu, số lượng bao nhiêu rồi mới ghi sổ.</p>`;
   bindScan($("#main"));
   $("#ma").oninput = e => {
-    const v = e.target.value.trim().toUpperCase();
+    const v = e.target.value.trim();
     const it = itemView(v);
     $("#tip").textContent = v ? (it ? (S.inStock.has(it.ma) ? `${vnName(it)} (${it.dvt || ""})` : "Mã này hiện không có tồn.") : "") : "";
     renderItemSuggest($("#picksh"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); }, true);
   };
+  renderRecent($("#recent"), ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#recent").innerHTML = ""; $("#sl").focus(); }, true);
   $("#add").onclick = addOrderLine;
-  $("#sl").onkeydown = e => e.key === "Enter" && addOrderLine();
+  $("#sl").onkeydown = e => { if (e.key === "Enter") addOrderLine(); };
   renderOrder();
 }
 function addOrderLine() {
-  const ma = $("#ma").value.trim().toUpperCase(), sl = Number($("#sl").value);
-  if (!itemView(ma)) return toast("Mã hàng chưa có trong danh mục.", true);
+  const it0 = itemView($("#ma").value), sl = Number($("#sl").value);
+  if (!it0) return toast("Mã hàng chưa có trong danh mục.", true);
+  const ma = it0.ma;
   if (!S.inStock.has(ma)) return toast("Mã này hiện không có tồn kho.", true);
   if (!(sl > 0)) return toast("Nhập số lượng > 0.", true);
   const ex = S.order.find(l => l.ma_hang === ma);
   if (ex) ex.sl += sl; else S.order.push({ ma_hang: ma, sl });
-  vibrate(15);
+  pushRecent(ma); vibrate(15);
   $("#ma").value = ""; $("#sl").value = ""; $("#tip").textContent = ""; $("#picksh").innerHTML = "";
   renderOrder(); toast("Đã thêm vào phiếu."); $("#ma").focus();
 }
@@ -717,8 +800,9 @@ function viewReceive() {
     <div class="card"><div class="head"><h3>📥 Thêm dòng nhập</h3></div>
     <label>Mã hàng <span class="req">*</span></label>
     <div class="row"><input id="ma" autocapitalize="characters" enterkeyhint="next" placeholder="Quét / gõ mã hàng">${scanBtn("ma")}</div>
-    <div id="ten" class="mut" style="margin-top:5px"></div><div id="picks"></div>
+    <div id="ten" class="mut" style="margin-top:5px"></div><div id="picks"></div><div id="recent"></div>
     <label>Số lượng <span class="req">*</span></label><input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num enterkeyhint="next">
+    <label>Số lô (tuỳ chọn)</label><input id="lo" autocapitalize="characters" enterkeyhint="next">
     <div class="grid2"><div><label>Ngày SX</label><input id="nsx" type="date"></div>
       <div><label>Hạn sử dụng</label><input id="hsd" type="date"></div></div>
     <label>Vị trí (trống = chưa xếp)</label>
@@ -732,30 +816,37 @@ function viewReceive() {
     $("#ten").textContent = it ? `${vnName(it)} (${it.dvt || ""})` : "";
     renderItemSuggest($("#picks"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
   };
+  renderRecent($("#recent"), ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#recent").innerHTML = ""; $("#sl").focus(); }, false);
+  $("#sl").onkeydown = e => { if (e.key === "Enter") $("#lo").focus(); };
+  $("#lo").onkeydown = e => { if (e.key === "Enter") $("#vt").focus(); };
   attachLoc($("#vt"), $("#vtpicks"), () => $("#add").focus());
   $("#add").onclick = addDraft; renderDraft();
 }
 function addDraft() {
-  const ma = $("#ma").value.trim().toUpperCase(), sl = Number($("#sl").value);
-  if (!itemView(ma)) return toast("Mã hàng chưa có trong danh mục.", true);
+  const it0 = itemView($("#ma").value), sl = Number($("#sl").value);
+  if (!it0) return toast("Mã hàng chưa có trong danh mục.", true);
+  const ma = it0.ma;
   if (!(sl > 0)) return toast("Nhập số lượng > 0.", true);
-  S.draft.push({ ma_hang: ma, sl, nsx: $("#nsx").value, hsd: $("#hsd").value, vi_tri: $("#vt").value.trim().toUpperCase() });
-  vibrate(15);
-  ["#ma", "#sl", "#nsx", "#hsd", "#vt"].forEach(s => $(s).value = "");
-  $("#ten").textContent = ""; $("#picks").innerHTML = ""; $("#vtpicks").innerHTML = ""; renderDraft(); toast("Đã thêm dòng."); $("#ma").focus();
+  S.draft.push({ ma_hang: ma, sl, lo: $("#lo").value.trim().toUpperCase(), nsx: $("#nsx").value, hsd: $("#hsd").value,
+                 vi_tri: $("#vt").value.trim().toUpperCase() });
+  pushRecent(ma); vibrate(15);
+  ["#ma", "#sl", "#lo", "#nsx", "#hsd", "#vt"].forEach(s => $(s).value = "");
+  $("#ten").textContent = ""; $("#picks").innerHTML = ""; $("#vtpicks").innerHTML = "";
+  renderRecent($("#recent"), m2 => { $("#ma").value = m2; $("#ma").dispatchEvent(new Event("input")); $("#recent").innerHTML = ""; $("#sl").focus(); }, false);
+  renderDraft(); toast("Đã thêm dòng."); $("#ma").focus();
 }
 function renderDraft() {
   const d = $("#draft"); if (!d) return;
   if (!S.draft.length) { d.innerHTML = ""; return; }
   d.innerHTML = `<div class="card"><div class="head"><h3>Phiếu nháp · ${S.draft.length} dòng</h3></div>
     ${S.draft.map((l, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(l.ma_hang)} · ${fmt(l.sl)}</div>
-      <div class="mut">${esc(nameOf(l.ma_hang))}${l.nsx ? " · NSX " + esc(l.nsx) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · 📍 " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
+      <div class="mut">${esc(nameOf(l.ma_hang))}${l.lo ? " · lô " + esc(l.lo) : ""}${l.nsx ? " · NSX " + esc(l.nsx) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · 📍 " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
     <label>Nhà cung cấp / ghi chú chung</label><input id="dg" enterkeyhint="done" placeholder="Tuỳ chọn">
     <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu nhập</button></p></div>`;
   $$("#draft [data-del]").forEach(b => b.onclick = () => { S.draft.splice(Number(b.dataset.del), 1); renderDraft(); });
   $("#post").onclick = () => {
-    const lines = S.draft.map(l => ({ ma_hang: l.ma_hang, lo: "", nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl: l.sl }));
+    const lines = S.draft.map(l => ({ ma_hang: l.ma_hang, lo: l.lo || "", nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl: l.sl }));
     submitVoucher($("#post"), "NHAP", $("#dg").value, "", lines, () => { S.draft = []; viewReceive(); });
   };
 }
@@ -778,7 +869,7 @@ function viewStocktake() {
   attachLoc($("#vt"), $("#vtpicks"), addLoc);
   $("#addvt").onclick = () => addLoc($("#vt").value);
   $("#scanvt").onclick = () => scanInto($("#vt"), addLoc);
-  $("#vt").onkeydown = e => e.key === "Enter" && addLoc($("#vt").value);
+  $("#vt").onkeydown = e => { if (e.key === "Enter") addLoc($("#vt").value); };
   if ($("#clear")) $("#clear").onclick = () => { S.kk = { vts: [], locs: {}, confirmed: false }; viewStocktake(); };
   if ($("#load")) $("#load").onclick = loadKK;
   if (k.confirmed && Object.keys(k.locs).length) renderKK();
@@ -857,6 +948,7 @@ async function voucherDetail(so) {
     const [v] = await must(sb.from("vouchers").select("*").eq("so", so).limit(1));
     const lines = await must(sb.from("voucher_lines").select("*").eq("so", so).order("stt"));
     if (!v) { toast("Không tìm thấy phiếu.", true); return; }
+    if (v.loai === "XUAT") return openPickScreen(v, lines);
     renderPickSheet(v, lines);
   } catch (e) { toast(e.message, true); }
 }
@@ -900,6 +992,157 @@ function renderPickSheet(v, lines) {
         catch (e) { toast(e.message, true); busy(b, false); }
       };
     });
+}
+
+// ------------------------------------------------------------------ TAB: Nhặt hàng (đồng bộ giữa các máy)
+const natCmp = (a, b) => String(a).localeCompare(String(b), "vi", { numeric: true, sensitivity: "base" });
+function viewPickList() {
+  $("#title").textContent = "Nhặt hàng"; $("#sub").textContent = "Phiếu xuất cần lấy hàng";
+  S.pkFilter ||= "todo";
+  $("#main").innerHTML = `<div class="seg">${[["todo","Cần nhặt"],["done","Đã xong"]]
+      .map(([k, t]) => `<button data-f="${k}" class="${S.pkFilter === k ? "on" : ""}">${t}</button>`).join("")}</div>
+    <div id="pl"></div>
+    <p class="hintline">Phiếu xuất lập trên máy tính hoặc điện thoại đều hiện ở đây. Mọi người cùng thấy dòng nào đã lấy. Tự cập nhật mỗi 10 giây.</p>`;
+  $$(".seg button").forEach(b => b.onclick = () => { S.pkFilter = b.dataset.f; viewPickList(); });
+  loadPickList(true);
+  clearInterval(S.pkListTimer);
+  S.pkListTimer = setInterval(() => { if (S.tab === "nhat" && !$(".pickscreen")) loadPickList(false); }, 10000);
+}
+async function loadPickList(showLoading) {
+  const box = $("#pl"); if (!box) return;
+  if (showLoading) box.innerHTML = `<div class="empty">Đang tải…</div>`;
+  try {
+    const rows = await must(sb.from("v_pick_progress").select("*").gte("ngay", addDays(-14))
+      .order("created_at", { ascending: false }).limit(80));
+    const isDone = r => r.so_dong > 0 && r.da_lay >= r.so_dong;
+    const list = rows.filter(r => r.so_dong > 0 && (S.pkFilter === "done" ? isDone(r) : !isDone(r)));
+    box.innerHTML = list.map(r => {
+      const pct = r.so_dong ? Math.round(100 * r.da_lay / r.so_dong) : 0;
+      return `<div class="card" data-so="${esc(r.so)}" style="padding:13px"><div class="row"><div>
+        <h3><span class="code">${esc(r.so)}</span></h3>
+        <div style="font-weight:600;margin-top:2px">${esc(r.doi_tac || r.ghi_chu || "(không ghi nơi nhận)")}</div>
+        <div class="mut">${esc(r.ngay)} · ${esc(r.nguoi_lap || "")} · ${r.so_dong} dòng</div></div>
+        <span class="chip ${isDone(r) ? "ok" : (r.da_lay ? "warn" : "gray")} fit">${isDone(r) ? "Đã nhặt đủ" : r.da_lay + "/" + r.so_dong}</span></div>
+        <div class="pbar ${isDone(r) ? "full" : ""}"><i style="width:${pct}%"></i></div></div>`;
+    }).join("") || `<div class="empty">${S.pkFilter === "done" ? "Chưa có phiếu nào nhặt xong." : "🎉 Không có phiếu nào cần nhặt."}</div>`;
+    $$("#pl [data-so]").forEach(c => c.onclick = () => openPickByNo(c.dataset.so));
+  } catch (e) { if (showLoading) box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+async function openPickByNo(so) {
+  try {
+    const [v] = await must(sb.from("vouchers").select("*").eq("so", so).limit(1));
+    const lines = await must(sb.from("voucher_lines").select("*").eq("so", so).order("stt"));
+    if (!v) return toast("Không tìm thấy phiếu.", true);
+    openPickScreen(v, lines);
+  } catch (e) { toast(e.message, true); }
+}
+
+async function openPickScreen(v, lines) {
+  clearInterval(S.pkTimer);
+  const old = $(".pickscreen"); if (old) old.remove();
+  // dòng chưa có vị trí (phiếu nháp từ máy tính): gợi ý vị trí theo nguyên tắc xuất
+  const sug = {};
+  const un = lines.filter(l => !l.vi_tri);
+  if (un.length) {
+    try { const a = await allocateOrder(un.map(l => ({ ma_hang: l.ma_hang, sl: l.sl })));
+      a.out.forEach((o, i) => { sug[un[i].id] = o.picks; }); } catch {}
+  }
+  const locOf = l => l.vi_tri || ((sug[l.id] || [])[0] || {}).vi_tri || "";
+  const rows = lines.map(l => ({ ...l })).sort((a, b) => {
+    const la = locOf(a), lb = locOf(b);
+    if (!la !== !lb) return la ? -1 : 1;          // chưa rõ vị trí xuống cuối
+    return natCmp(la, lb) || natCmp(a.ma_hang, b.ma_hang);
+  });
+  const el = document.createElement("div"); el.className = "pickscreen";
+  el.innerHTML = `<div class="ph"><div class="t"><button class="tb btn sm fit" id="pback" style="background:rgba(255,255,255,.16);color:#fff;min-height:38px">‹ Quay lại</button>
+      <b>${esc(v.doi_tac || v.ghi_chu || v.so)}</b><span class="chip fit" id="pcnt"></span></div>
+      <div class="sub"><span class="code">${esc(v.so)}</span> · ${esc(v.ngay)} · ${esc(v.nguoi_lap || "")}${v.trang_thai && v.trang_thai !== "Đã ghi sổ" ? " · " + esc(v.trang_thai) : ""}</div>
+      <div class="bar"><i id="pbar"></i></div></div>
+    <div class="pl" id="plist"></div>
+    <div class="pf"><button class="btn ghost" id="pall">Chọn hết còn lại</button><button class="btn" id="pdone">Xong</button>
+      ${S.isAdmin ? `<button class="btn bad fit" id="pundo" style="flex:none">Hủy</button>` : ""}</div>`;
+  document.body.append(el);
+
+  const dvt = ma => (itemView(ma) || {}).dvt || "";
+  function paint() {
+    const done = rows.filter(r => r.da_lay).length;
+    const total = rows.reduce((a, r) => a + Number(r.sl || 0), 0);
+    $("#pcnt", el).textContent = `${done}/${rows.length}`;
+    $("#pbar", el).style.width = (rows.length ? 100 * done / rows.length : 0) + "%";
+    const cur = rows.find(r => !r.da_lay);
+    const ln = r => { const s = sug[r.id]; return r.vi_tri ? r.vi_tri : (s && s.length ? s.map(p => p.vi_tri).join(" + ") : ""); };
+    const meta = r => [r.lo ? "lô " + r.lo : "", r.hsd ? "HSD " + r.hsd : ""].filter(Boolean).join(" · ");
+    let html = `<div class="doc"><div class="ttl">PHIẾU XUẤT KHO</div><dl>
+      <dt>Số phiếu</dt><dd class="code">${esc(v.so)}</dd>
+      <dt>Ngày</dt><dd>${esc(v.ngay)}</dd>
+      <dt>Nơi nhận</dt><dd>${esc(v.doi_tac || v.ghi_chu || "—")}</dd>
+      <dt>Người lập</dt><dd>${esc(v.nguoi_lap || "—")}</dd>
+      <dt>Tổng cộng</dt><dd>${rows.length} dòng · ${fmt(total)}</dd></dl></div>`;
+    if (!cur && rows.length) {
+      html += `<div class="allok">✔ ĐÃ NHẶT ĐỦ ${rows.length}/${rows.length} DÒNG</div>`;
+    } else if (cur) {
+      const i = rows.indexOf(cur) + 1, s = sug[cur.id];
+      html += `<div class="nx"><div class="tag">LẤY TIẾP · DÒNG ${i}/${rows.length}</div>
+        <div class="lc">📍 ${esc(ln(cur) || "chưa rõ vị trí")}</div>
+        <div class="nm">${esc(nameOf(cur.ma_hang))}</div>
+        <div class="meta"><span class="code">${esc(cur.ma_hang)}</span>${meta(cur) ? " · " + esc(meta(cur)) : ""}</div>
+        <div class="q">${fmt(cur.sl)}<small>${esc(dvt(cur.ma_hang))}</small></div>
+        ${!cur.vi_tri && s && s.length > 1 ? `<div class="meta">Lấy: ${s.map(p => `${esc(p.vi_tri)} ×${fmt(p.take)}`).join(" + ")}</div>` : ""}
+        <button class="btn" id="nxok">✓ ĐÃ LẤY</button>
+        <div class="skip">Chạm dòng bất kỳ bên dưới để đánh dấu / bỏ đánh dấu</div></div>`;
+    }
+    html += `<div class="tbl"><div class="th"><span>STT</span><span>Hàng hóa</span><span style="text-align:right">Vị trí · SL</span></div>` +
+      rows.map((r, k) => `<div class="pr ${r.da_lay ? "done" : (r === cur ? "cur" : "")}" data-id="${r.id}">
+        <div class="no">${r.da_lay ? "✓" : k + 1}</div>
+        <div><div class="nm">${esc(nameOf(r.ma_hang))}</div>
+          <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${meta(r) ? " · " + esc(meta(r)) : ""}</div>
+          ${r.da_lay && r.lay_boi ? `<div class="who">✓ ${esc(r.lay_boi)}${r.lay_luc ? " · " + esc(String(r.lay_luc).slice(11, 16)) : ""}</div>` : ""}</div>
+        <div><div class="lc">${esc(ln(r) || "—")}</div><div class="q">${fmt(r.sl)} <span class="mut">${esc(dvt(r.ma_hang))}</span></div></div></div>`).join("") + `</div>`;
+    $("#plist", el).innerHTML = html;
+    $$(".pr", el).forEach(c => c.onclick = () => toggle(Number(c.dataset.id)));
+    const ok = $("#nxok", el); if (ok && cur) ok.onclick = () => toggle(cur.id);
+  }
+  async function setPicked(ids, val) {
+    const me = S.me.ho_ten || S.me.username, now = new Date().toISOString().replace("T", " ").slice(0, 19);
+    const prev = rows.filter(r => ids.includes(r.id)).map(r => [r.id, r.da_lay, r.lay_boi, r.lay_luc]);
+    rows.forEach(r => { if (ids.includes(r.id)) { r.da_lay = val; r.lay_boi = val ? me : null; r.lay_luc = val ? now : null; } });
+    paint();
+    try { await rpc("set_picked", { p_ids: ids, p_val: val }); }
+    catch (e) {
+      prev.forEach(([id, d, b, t]) => { const r = rows.find(x => x.id === id); if (r) { r.da_lay = d; r.lay_boi = b; r.lay_luc = t; } });
+      paint(); toast("Không lưu được: " + e.message, true);
+    }
+  }
+  const toggle = id => {
+    const r = rows.find(x => x.id === id); if (!r) return;
+    vibrate(r.da_lay ? 10 : 25);
+    setPicked([id], !r.da_lay).then(() => {
+      if (rows.length && rows.every(x => x.da_lay)) { vibrate([60, 40, 60]); toast("✔ Đã nhặt đủ phiếu"); }
+    });
+  };
+  const close = () => { clearInterval(S.pkTimer); el.remove(); if (S.tab === "nhat") loadPickList(false); };
+  $("#pback", el).onclick = close;
+  $("#pdone", el).onclick = close;
+  $("#pall", el).onclick = () => { const ids = rows.filter(r => !r.da_lay).map(r => r.id); if (ids.length) setPicked(ids, true); };
+  const u = $("#pundo", el);
+  if (u) u.onclick = async () => {
+    if (!confirm(`Hủy phiếu ${v.so} và hoàn lại tồn kho?`)) return;
+    busy(u, true, "…");
+    try { await rpc("undo_voucher", { p_so: v.so }); toast("Đã hủy phiếu."); close(); if (S.tab === "phieu") viewVouchers(); }
+    catch (e) { toast(e.message, true); busy(u, false); }
+  };
+  paint();
+  // đồng bộ trạng thái "đã lấy" từ máy khác mỗi 6 giây
+  S.pkTimer = setInterval(async () => {
+    if (!document.body.contains(el)) return clearInterval(S.pkTimer);
+    try {
+      const fresh = await must(sb.from("voucher_lines").select("id,da_lay,lay_boi,lay_luc").eq("so", v.so));
+      let ch = false;
+      fresh.forEach(f => { const r = rows.find(x => x.id === f.id);
+        if (r && (r.da_lay !== f.da_lay)) { r.da_lay = f.da_lay; r.lay_boi = f.lay_boi; r.lay_luc = f.lay_luc; ch = true; } });
+      if (ch) paint();
+    } catch {}
+  }, 6000);
 }
 
 // -------------------------------------------------------------- PWA

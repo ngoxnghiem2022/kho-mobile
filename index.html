@@ -175,7 +175,7 @@ const today = () => new Date().toLocaleDateString("sv-SE");
 const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 const debounce = (f, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 
-const APP_VER = "v5";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v6";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -213,11 +213,13 @@ function busy(btn, on, label) {
   else if (btn.dataset.txt) { btn.disabled = false; btn.innerHTML = btn.dataset.txt; }
 }
 const vibrate = p => navigator.vibrate && navigator.vibrate(p);
-function renderItemSuggest(box, raw, onPick) {
+function renderItemSuggest(box, raw, onPick, onlyStock) {
   const v = raw.trim(); const q = v.toLowerCase(); const it = itemView(v.toUpperCase());
-  if (!q || it) { box.innerHTML = ""; return; }
-  const pk = quickPicks(S.items, ["ma", "ten", "ten_vn"], q, 8);
-  if (!pk.length) { box.innerHTML = `<div class="hintline" style="margin-top:8px">Không tìm thấy mã / tên phù hợp — kiểm tra lại.</div>`; return; }
+  if (!q) { box.innerHTML = ""; return; }
+  if (it && (!onlyStock || S.inStock.has(it.ma))) { box.innerHTML = ""; return; }
+  const pool = onlyStock ? S.items.filter(i => S.inStock.has(i.ma)) : S.items;
+  const pk = quickPicks(pool, ["ma", "ten", "ten_vn"], q, 8);
+  if (!pk.length) { box.innerHTML = `<div class="hintline" style="margin-top:8px">${onlyStock ? "Không có mã nào đang có tồn khớp." : "Không tìm thấy mã / tên phù hợp — kiểm tra lại."}</div>`; return; }
   box.innerHTML = `<div class="pick-hd">Chọn mặt hàng</div><div class="ipick">` +
     pk.map(p => {
       const vn = vnName(p);
@@ -309,13 +311,14 @@ const cachedMe = () => { try { return JSON.parse(localStorage.getItem(LS_ME) || 
 
 let _refAt = 0;
 async function loadRef() {
-  const [items, locs, custs, setRows] = await Promise.all([
+  const [items, locs, custs, setRows, stk] = await Promise.all([
     must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu").order("ma")),
     must(sb.from("locations").select("ma,loai,cha,ghi_chu").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
     must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat"])),
+    must(sb.from("v_stock_tong").select("ma,tong").gt("tong", 0)),
   ]);
-  Object.assign(S, { items, locs, custs });
+  Object.assign(S, { items, locs, custs, inStock: new Set((stk || []).map(r => r.ma)) });
   const g = Object.fromEntries((setRows || []).map(r => [r.key, r.value]));
   S.warnDays = Number(g.hsd_canh_bao) || 30;
   S.chuyDays = Number(g.hsd_chu_y) || 90;
@@ -614,25 +617,23 @@ function allocToLines(out) {
 
 // ------------------------------------------------------------------ TAB: Xuất hàng
 function viewIssue() {
-  $("#title").textContent = "Xuất hàng"; $("#sub").textContent = `Nguyên tắc: ${ruleName[S.xuatRule] || S.xuatRule}`;
-  $("#main").innerHTML = `${dlItem()}${dlCust()}
-    <div class="card"><div class="head"><h3>📤 Phiếu xuất hàng</h3></div>
-      <label>Nơi nhận / khách hàng <span class="req">*</span></label>
-      <input id="dt" list="dl-custs" placeholder="Chọn hoặc gõ tên khách / nơi nhận" enterkeyhint="next">
-      <label>Thêm mặt hàng cần xuất</label>
-      <div class="row"><input id="ma" list="dl-items" autocapitalize="characters" placeholder="Quét / gõ mã hàng" enterkeyhint="next">${scanBtn("ma")}</div>
+  $("#title").textContent = "Xuất hàng"; $("#sub").textContent = `Tự động ${ruleName[S.xuatRule] || S.xuatRule}`;
+  $("#main").innerHTML = `${dlItem()}
+    <div class="card"><div class="head"><h3>📤 Lập phiếu xuất</h3></div>
+      <label>Thêm mặt hàng (chỉ mã đang có tồn)</label>
+      <div class="row"><input id="ma" list="dl-items" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên" enterkeyhint="next">${scanBtn("ma")}</div>
       <div id="tip" class="mut" style="margin-top:5px;min-height:18px"></div>
       <div id="picksh"></div>
       <div class="row" style="margin-top:2px"><input id="sl" type="number" inputmode="decimal" placeholder="Số lượng" enterkeyhint="done"><button class="btn fit" id="add" style="min-width:56px">＋</button></div>
       <div id="order"></div>
     </div>
-    <p class="hintline">Hệ thống tự phân bổ lô theo <b>${esc(S.xuatRule)}</b> (bỏ hàng hết hạn). Bấm <b>Xem &amp; xuất kho</b> để thấy lấy ở đâu, số lượng bao nhiêu rồi mới ghi sổ.</p>`;
+    <p class="hintline">Hệ thống tự lấy lô theo <b>${esc(S.xuatRule)}</b> (nhập trước xuất trước, bỏ hàng hết hạn). Bấm <b>Xem &amp; xuất kho</b> để xem lấy ở đâu, số lượng bao nhiêu rồi mới ghi sổ.</p>`;
   bindScan($("#main"));
   $("#ma").oninput = e => {
     const v = e.target.value.trim().toUpperCase();
     const it = itemView(v);
-    $("#tip").textContent = v ? (it ? `${vnName(it)} (${it.dvt || ""})` : "") : "";
-    renderItemSuggest($("#picksh"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
+    $("#tip").textContent = v ? (it ? (S.inStock.has(it.ma) ? `${vnName(it)} (${it.dvt || ""})` : "Mã này hiện không có tồn.") : "") : "";
+    renderItemSuggest($("#picksh"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); }, true);
   };
   $("#add").onclick = addOrderLine;
   $("#sl").onkeydown = e => e.key === "Enter" && addOrderLine();
@@ -641,6 +642,7 @@ function viewIssue() {
 function addOrderLine() {
   const ma = $("#ma").value.trim().toUpperCase(), sl = Number($("#sl").value);
   if (!itemView(ma)) return toast("Mã hàng chưa có trong danh mục.", true);
+  if (!S.inStock.has(ma)) return toast("Mã này hiện không có tồn kho.", true);
   if (!(sl > 0)) return toast("Nhập số lượng > 0.", true);
   const ex = S.order.find(l => l.ma_hang === ma);
   if (ex) ex.sl += sl; else S.order.push({ ma_hang: ma, sl });
@@ -664,7 +666,6 @@ function renderOrder() {
   $("#go-o").onclick = reviewOrder;
 }
 async function reviewOrder() {
-  const dt = $("#dt").value.trim();
   if (!S.order.length) return toast("Chưa có mặt hàng nào.", true);
   const btn = $("#go-o"); busy(btn, true, "Đang tính…");
   let alloc;
@@ -677,7 +678,7 @@ async function reviewOrder() {
   const totalLines = alloc.out.reduce((a, o) => a + o.picks.length, 0);
   const vts = new Set(); alloc.out.forEach(o => o.picks.forEach(p => vts.add(p.vi_tri)));
   sheet(`<h3>📋 Phiếu lấy hàng</h3>
-    <div class="mut" style="margin:2px 0 8px">${dt ? "Khách / nơi nhận: <b>" + esc(dt) + "</b>" : "<i>Chưa ghi nơi nhận</i>"}</div>
+    <div class="mut" style="margin:2px 0 8px">Tự động theo <b>${esc(S.xuatRule)}</b> · ${alloc.out.length} mặt hàng</div>
     <div class="stat"><div><span>Mặt hàng</span><b>${alloc.out.length}</b></div>
       <div><span>Dòng lấy</span><b>${totalLines}</b></div><div><span>Vị trí</span><b>${vts.size}</b></div></div>
     ${alloc.out.map(o => `<div class="card" style="box-shadow:none;margin:10px 0 0">
@@ -687,10 +688,11 @@ async function reviewOrder() {
         <div class="mut">Lấy <b>${fmt(p.take)}</b>${p.lo ? " · lô " + esc(p.lo) : ""} ${p.hsd ? "· HSD " + esc(p.hsd) : ""}${p.ngay_nhap ? " · nhập " + esc(p.ngay_nhap) : ""}</div>
       </div></div>`).join("")}
     </div>`).join("")}
+    <label>Ghi chú (tuỳ chọn)</label><input id="gc" enterkeyhint="done">
     <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu xuất</button></p>`, (el, close) => {
     $("#post", el).onclick = () => {
       const lines = allocToLines(alloc.out);
-      submitVoucher($("#post", el), "XUAT", dt, "", lines, so => { close(); S.order = []; renderOrder(); openPick(so); });
+      submitVoucher($("#post", el), "XUAT", "", $("#gc", el).value, lines, so => { close(); S.order = []; renderOrder(); openPick(so); });
     };
   });
 }

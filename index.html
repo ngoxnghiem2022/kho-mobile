@@ -185,7 +185,7 @@ document.addEventListener("input", e => {
   if (v !== t.value) t.value = v;
 }, true);
 
-const APP_VER = "v11";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v12";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -250,12 +250,11 @@ function locName(l) { return String((l && l.ghi_chu) || "").trim(); }
 function locLabel(l) {
   if (!l) return "";
   const nm = locName(l);
-  if (l.cha) return l.ma + " · Kiện trong " + l.cha + (nm && nm !== l.ma ? " – " + nm : "");
   return l.ma + (nm && nm !== l.ma ? " · " + nm : "");
 }
 function locMatches(q) {
   q = (q || "").trim().toLowerCase();
-  const f = S.locs.filter(l => !q || l.ma.toLowerCase().includes(q) || locName(l).toLowerCase().includes(q) || (l.cha || "").toLowerCase().includes(q));
+  const f = S.locs.filter(l => !q || l.ma.toLowerCase().includes(q) || locName(l).toLowerCase().includes(q));
   f.sort((a, b) => {
     const am = a.ma.toLowerCase() === q ? 0 : (a.ma.toLowerCase().startsWith(q) ? 1 : 2);
     const bm = b.ma.toLowerCase() === q ? 0 : (b.ma.toLowerCase().startsWith(q) ? 1 : 2);
@@ -268,14 +267,13 @@ function renderLocSuggest(box, raw, onPick) {
   const q = (raw || "").trim().toLowerCase();
   const list = locMatches(q).slice(0, q ? 12 : 8);
   if (!list.length) {
-    box.innerHTML = q ? `<div class="hintline" style="margin-top:6px">Không có vị trí khớp — có thể gõ mã mới, hệ thống tự tạo khi nhập.</div>` : "";
+    box.innerHTML = q ? `<div class="hintline" style="margin-top:6px">Chưa có vị trí khớp — cứ gõ mã mới, hệ thống tự tạo khi nhập.</div>` : "";
     return;
   }
   box.innerHTML = `<div class="locbox">` + list.map(l =>
     `<button type="button" class="locrow" data-loc="${esc(l.ma)}">
       <span class="lc">${hlText(l.ma, q)}</span>
-      <span class="ln">${esc(l.cha ? ("Kiện trong " + l.cha) : (locName(l) || ""))}</span>
-      <span class="loctype">${esc(l.loai || "")}</span></button>`).join("") + `</div>`;
+      <span class="ln">${esc(locName(l) || "")}</span></button>`).join("") + `</div>`;
   box.querySelectorAll("[data-loc]").forEach(b => b.onclick = () => onPick(b.dataset.loc));
 }
 function attachLoc(input, box, onPick) {
@@ -323,7 +321,7 @@ let _refAt = 0;
 async function loadRef() {
   const [items, locs, custs, setRows, stk] = await Promise.all([
     must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu").order("ma")),
-    must(sb.from("locations").select("ma,loai,cha,ghi_chu").eq("active", 1).order("ma")),
+    must(sb.from("locations").select("ma,ghi_chu").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
     must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat"])),
     must(sb.from("v_stock_tong").select("ma,tong").gt("tong", 0)),
@@ -723,7 +721,7 @@ function viewReceive() {
     <label>Số lượng <span class="req">*</span></label><input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num enterkeyhint="next">
     <div class="grid2"><div><label>Ngày SX</label><input id="nsx" type="date"></div>
       <div><label>Hạn sử dụng</label><input id="hsd" type="date"></div></div>
-    <label>Vị trí — Pallet / Kiện (trống = chưa xếp)</label>
+    <label>Vị trí (trống = chưa xếp)</label>
     <div class="row"><input id="vt" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">${scanBtn("vt")}</div>
     <div id="vtpicks"></div>
     <p style="margin-top:14px"><button class="btn alt" id="add" style="width:100%">＋ Thêm vào phiếu</button></p></div>
@@ -769,7 +767,7 @@ function viewStocktake() {
   $("#main").innerHTML = `${dlLoc()}
     <div class="card"><div class="head"><h3>✅ Vị trí đang kiểm (${k.vts.length})</h3><div class="sp"></div>
     ${k.vts.length ? `<button class="btn ghost sm fit" id="clear">Xoá</button>` : ""}</div>
-    <label>Thêm vị trí (Pallet / Kiện)</label>
+    <label>Thêm vị trí</label>
     <div class="row"><input id="vt" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">
       <button class="btn alt fit" type="button" id="scanvt">📷</button><button class="btn fit" type="button" id="addvt">＋</button></div>
     <div id="vtpicks"></div>

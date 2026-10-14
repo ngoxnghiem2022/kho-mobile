@@ -257,7 +257,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v14";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v15";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -1055,12 +1055,11 @@ async function openPickScreen(v, lines) {
   });
   const el = document.createElement("div"); el.className = "pickscreen";
   el.innerHTML = `<div class="ph"><div class="t"><button class="tb btn sm fit" id="pback" style="background:rgba(255,255,255,.16);color:#fff;min-height:38px">‹ Quay lại</button>
-      <b>${esc(v.doi_tac || v.ghi_chu || v.so)}</b><span class="chip fit" id="pcnt"></span></div>
-      <div class="sub"><span class="code">${esc(v.so)}</span> · ${esc(v.ngay)} · ${esc(v.nguoi_lap || "")}${v.trang_thai && v.trang_thai !== "Đã ghi sổ" ? " · " + esc(v.trang_thai) : ""}</div>
+      <b>Phiếu xuất kho</b><span class="chip fit" id="pcnt"></span></div>
+      <div class="sub">Đã lấy <span id="psub"></span> dòng · chạm dòng để đánh dấu đã lấy</div>
       <div class="bar"><i id="pbar"></i></div></div>
-    <div class="pl" id="plist"></div>
-    <div class="pf"><button class="btn ghost" id="pall">Chọn hết còn lại</button><button class="btn" id="pdone">Xong</button>
-      ${S.isAdmin ? `<button class="btn bad fit" id="pundo" style="flex:none">Hủy</button>` : ""}</div>`;
+    <div class="pl"><div id="plist"></div>
+      ${S.isAdmin ? `<p style="margin:18px 0 6px;text-align:center"><button class="btn bad sm" id="pundo">Hủy phiếu (hoàn lại tồn kho)</button></p>` : ""}</div>`;
   document.body.append(el);
 
   const dvt = ma => (itemView(ma) || {}).dvt || "";
@@ -1068,6 +1067,7 @@ async function openPickScreen(v, lines) {
     const done = rows.filter(r => r.da_lay).length;
     const total = rows.reduce((a, r) => a + Number(r.sl || 0), 0);
     $("#pcnt", el).textContent = `${done}/${rows.length}`;
+    $("#psub", el).textContent = `${done}/${rows.length}`;
     $("#pbar", el).style.width = (rows.length ? 100 * done / rows.length : 0) + "%";
     const cur = rows.find(r => !r.da_lay);
     const ln = r => { const s = sug[r.id]; return r.vi_tri ? r.vi_tri : (s && s.length ? s.map(p => p.vi_tri).join(" + ") : ""); };
@@ -1122,8 +1122,6 @@ async function openPickScreen(v, lines) {
   };
   const close = () => { clearInterval(S.pkTimer); el.remove(); if (S.tab === "nhat") loadPickList(false); };
   $("#pback", el).onclick = close;
-  $("#pdone", el).onclick = close;
-  $("#pall", el).onclick = () => { const ids = rows.filter(r => !r.da_lay).map(r => r.id); if (ids.length) setPicked(ids, true); };
   const u = $("#pundo", el);
   if (u) u.onclick = async () => {
     if (!confirm(`Hủy phiếu ${v.so} và hoàn lại tồn kho?`)) return;

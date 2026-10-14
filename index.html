@@ -318,7 +318,7 @@ function shell() {
     <button class="tb" id="out">Thoát</button></header>
     <main id="main"></main>
     <nav>${TABS.map(([k, i, t]) => `<button data-t="${k}"><b>${i}</b>${t}</button>`).join("")}</nav>`;
-  $("#sub").textContent = `${S.me.ho_ten || S.me.username} · ${S.isAdmin ? "Quản trị" : "Nhân viên"} · ${APP_VER}`;
+  $("#sub").textContent = `${S.me.ho_ten || S.me.username} · ${S.isAdmin ? "Quản trị" : "Nhân viên"}`;
   if (deferredInstall) $("#install").style.display = "inline-block";
   $("#install").onclick = async () => {
     if (!deferredInstall) return;
@@ -342,6 +342,7 @@ function refreshCurrent(forceRef) {
   if (forceRef) refreshRef(true);
   const y = window.scrollY;
   ({ ton: viewStock, nhap: viewReceive, xuat: viewIssue, kk: viewStocktake, phieu: viewVouchers })[S.tab]();
+  const sub = $("#sub"); if (sub) sub.textContent = `${sub.textContent} · ${APP_VER}`;
   if (!forceRef) window.scrollTo(0, y); else window.scrollTo(0, 0);
 }
 

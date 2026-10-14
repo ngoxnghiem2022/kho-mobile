@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Kho">
 <meta name="format-detection" content="telephone=no">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <title>Kho Mobile</title>
 <style>
@@ -204,10 +205,11 @@ function refreshRef(force) { if (force || Date.now() - _refAt > TTL_MS) loadRef(
 function renderLogin(force) {
   if (!force && cachedMe()) return renderQuickOpen(cachedMe());
   $("#app").innerHTML = `<div class="login"><h2>Kho Mobile</h2>
-    <label>Tên đăng nhập</label><input id="u" autocapitalize="none" autocomplete="username" enterkeyhint="next">
-    <label>Mật khẩu</label><input id="p" type="password" autocomplete="current-password" enterkeyhint="go">
+    <label>Tên đăng nhập</label><input id="u" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" enterkeyhint="next">
+    <label>Mật khẩu</label><input id="p" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="current-password" enterkeyhint="go">
     <p><button class="btn" style="width:100%" id="go">Đăng nhập</button></p>
-    <p class="hintline" style="text-align:center">Dùng tài khoản đã tạo trên Supabase (dạng <i>ten@kho.local</i>)</p></div>`;
+    <p class="hintline" style="text-align:center">Tài khoản do quản trị tạo trên Supabase (dạng <i>ten@kho.local</i>)</p>
+    <p class="hintline" style="text-align:center">⚠ Nếu bấm vào ô mà <b>không hiện bàn phím</b>: đang mở trong trình duyệt của app (Telegram/Zalo/Facebook). Hãy mở bằng <b>Chrome</b> (Android) hoặc <b>Safari</b> (iPhone) — hoặc bấm <b>⋯ → Mở bằng trình duyệt</b>.</p></div>`;
   const go = async () => {
     const u = $("#u").value.trim().toLowerCase(), p = $("#p").value;
     if (!u || !p) return;

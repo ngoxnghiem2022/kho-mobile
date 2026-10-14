@@ -257,7 +257,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v16";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v17";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -394,7 +394,7 @@ const cachedMe = () => { try { return JSON.parse(localStorage.getItem(LS_ME) || 
 let _refAt = 0;
 async function loadRef() {
   const [items, locs, custs, setRows, stk] = await Promise.all([
-    must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu").order("ma")),
+    must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu,han_dung").order("ma")),
     must(sb.from("locations").select("ma,ghi_chu").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
     must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat"])),
@@ -789,8 +789,9 @@ function viewReceive() {
     <div id="ten" class="mut" style="margin-top:5px"></div><div id="picks"></div><div id="recent"></div>
     <label>Số lượng <span class="req">*</span></label><input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num enterkeyhint="next">
     <label>Số lô (tuỳ chọn)</label><input id="lo" autocapitalize="characters" enterkeyhint="next">
-    <div class="grid2"><div><label>Ngày SX</label><input id="nsx" type="date"></div>
-      <div><label>Hạn sử dụng</label><input id="hsd" type="date"></div></div>
+    <div id="nsxbox"><label>Ngày sản xuất <span class="req" id="nsxreq" style="display:none">*</span></label><input id="nsx" type="date"></div>
+    <div id="hsdbox"><label>Hạn sử dụng (tuỳ chọn)</label><input id="hsd" type="date"></div>
+    <div id="hsdauto" class="stat" style="display:none"></div>
     <label>Vị trí (trống = chưa xếp)</label>
     <div class="row"><input id="vt" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">${scanBtn("vt")}</div>
     <div id="vtpicks"></div>
@@ -800,24 +801,51 @@ function viewReceive() {
   $("#ma").oninput = e => {
     const v = e.target.value.trim().toUpperCase(); const it = itemView(v);
     $("#ten").textContent = it ? `${vnName(it)} (${it.dvt || ""})` : "";
+    refreshDates();
     renderItemSuggest($("#picks"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
   };
   renderRecent($("#recent"), ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#recent").innerHTML = ""; $("#sl").focus(); }, false);
+  $("#nsx").oninput = refreshDates; $("#nsx").onchange = refreshDates;
+  refreshDates();
   $("#sl").onkeydown = e => { if (e.key === "Enter") $("#lo").focus(); };
   $("#lo").onkeydown = e => { if (e.key === "Enter") $("#vt").focus(); };
   attachLoc($("#vt"), $("#vtpicks"), () => $("#add").focus());
   $("#add").onclick = addDraft; renderDraft();
+}
+// Hạn dùng theo số ngày của mã hàng: HSD = NSX + số ngày (giống app máy tính)
+function addDaysIso(iso, n) {
+  const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + Number(n));
+  return d.toLocaleDateString("sv-SE");
+}
+function refreshDates() {
+  const it = itemView(($("#ma") || {}).value), days = Number(it && it.han_dung) || 0;
+  const hsdbox = $("#hsdbox"), auto = $("#hsdauto"), req = $("#nsxreq"), nsx = $("#nsx").value;
+  if (days > 0) {
+    hsdbox.style.display = "none"; req.style.display = "inline";
+    auto.style.display = "flex";
+    auto.innerHTML = nsx
+      ? `<div><span>Hạn dùng ${days} ngày</span><b>HSD tự tính: ${esc(addDaysIso(nsx, days))}</b></div>`
+      : `<div><span>Mã này có hạn dùng</span><b>${days} ngày – chỉ cần nhập ngày sản xuất</b></div>`;
+  } else {
+    hsdbox.style.display = ""; req.style.display = "none"; auto.style.display = "none";
+  }
 }
 function addDraft() {
   const it0 = itemView($("#ma").value), sl = Number($("#sl").value);
   if (!it0) return toast("Mã hàng chưa có trong danh mục.", true);
   const ma = it0.ma;
   if (!(sl > 0)) return toast("Nhập số lượng > 0.", true);
-  S.draft.push({ ma_hang: ma, sl, lo: $("#lo").value.trim().toUpperCase(), nsx: $("#nsx").value, hsd: $("#hsd").value,
+  const days = Number(it0.han_dung) || 0;
+  let hsdVal = $("#hsd").value;
+  if (days > 0) {
+    if (!$("#nsx").value) return toast(`Mã này có hạn dùng ${days} ngày – hãy nhập ngày sản xuất.`, true);
+    hsdVal = addDaysIso($("#nsx").value, days);
+  }
+  S.draft.push({ ma_hang: ma, sl, lo: $("#lo").value.trim().toUpperCase(), nsx: $("#nsx").value, hsd: hsdVal,
                  vi_tri: $("#vt").value.trim().toUpperCase() });
   pushRecent(ma); vibrate(15);
   ["#ma", "#sl", "#lo", "#nsx", "#hsd", "#vt"].forEach(s => $(s).value = "");
-  $("#ten").textContent = ""; $("#picks").innerHTML = ""; $("#vtpicks").innerHTML = "";
+  $("#ten").textContent = ""; $("#picks").innerHTML = ""; $("#vtpicks").innerHTML = ""; refreshDates();
   renderRecent($("#recent"), m2 => { $("#ma").value = m2; $("#ma").dispatchEvent(new Event("input")); $("#recent").innerHTML = ""; $("#sl").focus(); }, false);
   renderDraft(); toast("Đã thêm dòng."); $("#ma").focus();
 }

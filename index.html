@@ -128,6 +128,12 @@ font-size:22px;padding:8px;line-height:1}
 .ipick .vn{display:block;margin-top:2px;font-weight:600;font-size:15px}
 .ipick .vn b,.ipick .code b{color:var(--pri)}
 .ipick .en{display:block;color:var(--mut);font-size:12px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.locbox{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.locrow{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:var(--ink)}
+.locrow:active{background:var(--tap)}
+.locrow .lc{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;flex:none}
+.locrow .ln{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut);font-size:13px}
+.loctype{font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap;flex:none}
 .more{margin-top:8px;text-align:center}
 .more button{border:0;background:none;color:var(--pri);font:700 14px inherit;padding:10px}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
@@ -169,7 +175,7 @@ const today = () => new Date().toLocaleDateString("sv-SE");
 const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 const debounce = (f, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 
-const APP_VER = "v4";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v5";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -227,6 +233,45 @@ function hlText(s, q) {
   if (i < 0) return esc(s);
   return esc(s.slice(0, i)) + "<b>" + esc(s.slice(i, i + q.length)) + "</b>" + esc(s.slice(i + q.length));
 }
+// ------ vị trí: gợi ý có MÃ + TÊN + loại, gõ/quét để lọc (tối ưu cho điện thoại)
+function locName(l) { return String((l && l.ghi_chu) || "").trim(); }
+function locLabel(l) {
+  if (!l) return "";
+  const nm = locName(l);
+  if (l.cha) return l.ma + " · Kiện trong " + l.cha + (nm && nm !== l.ma ? " – " + nm : "");
+  return l.ma + (nm && nm !== l.ma ? " · " + nm : "");
+}
+function locMatches(q) {
+  q = (q || "").trim().toLowerCase();
+  const f = S.locs.filter(l => !q || l.ma.toLowerCase().includes(q) || locName(l).toLowerCase().includes(q) || (l.cha || "").toLowerCase().includes(q));
+  f.sort((a, b) => {
+    const am = a.ma.toLowerCase() === q ? 0 : (a.ma.toLowerCase().startsWith(q) ? 1 : 2);
+    const bm = b.ma.toLowerCase() === q ? 0 : (b.ma.toLowerCase().startsWith(q) ? 1 : 2);
+    return am - bm || a.ma.localeCompare(b.ma, "vi");
+  });
+  return f;
+}
+function renderLocSuggest(box, raw, onPick) {
+  if (!box) return;
+  const q = (raw || "").trim().toLowerCase();
+  const list = locMatches(q).slice(0, q ? 12 : 8);
+  if (!list.length) {
+    box.innerHTML = q ? `<div class="hintline" style="margin-top:6px">Không có vị trí khớp — có thể gõ mã mới, hệ thống tự tạo khi nhập.</div>` : "";
+    return;
+  }
+  box.innerHTML = `<div class="locbox">` + list.map(l =>
+    `<button type="button" class="locrow" data-loc="${esc(l.ma)}">
+      <span class="lc">${hlText(l.ma, q)}</span>
+      <span class="ln">${esc(l.cha ? ("Kiện trong " + l.cha) : (locName(l) || ""))}</span>
+      <span class="loctype">${esc(l.loai || "")}</span></button>`).join("") + `</div>`;
+  box.querySelectorAll("[data-loc]").forEach(b => b.onclick = () => onPick(b.dataset.loc));
+}
+function attachLoc(input, box, onPick) {
+  if (!input) return;
+  const run = () => renderLocSuggest(box, input.value, ma => { input.value = ma; box.innerHTML = ""; if (onPick) onPick(ma); else input.blur(); });
+  input.oninput = run;
+  input.onfocus = run;
+}
 function withSearch(items, keys, q) {
   const f = items.filter(x => keys.some(k => String(x[k] || "").toLowerCase().includes(q)));
   f.sort((a, b) => {
@@ -266,7 +311,7 @@ let _refAt = 0;
 async function loadRef() {
   const [items, locs, custs, setRows] = await Promise.all([
     must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu").order("ma")),
-    must(sb.from("locations").select("ma,loai,cha").eq("active", 1).order("ma")),
+    must(sb.from("locations").select("ma,loai,cha,ghi_chu").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
     must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat"])),
   ]);
@@ -513,10 +558,12 @@ function sheetIssue(l) {
 }
 function sheetMove(l) {
   sheet(`${lotHead(l)}<label>Vị trí đến (khác vị trí hiện tại)</label>
-    <div class="row"><input id="den" list="dl-locs" autocapitalize="characters" enterkeyhint="done">${scanBtn("den")}</div>${dlLoc()}
+    <div class="row"><input id="den" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">${scanBtn("den")}</div>
+    <div id="denpicks"></div>
     <label>Số lượng chuyển (tối đa ${fmt(l.sl)})</label><input id="sl" type="number" inputmode="decimal" value="${l.sl}" enterkeyhint="done">
     <label>Ghi chú</label><input id="gc" enterkeyhint="done">
     <p><button class="btn" id="ok" style="width:100%">Chuyển vị trí</button></p>`, (el, close) => {
+    attachLoc($("#den", el), $("#denpicks", el), () => $("#sl", el).focus());
     $("#den", el).focus();
     $("#ok", el).onclick = () => {
       const sl = Number($("#sl", el).value), den = $("#den", el).value.trim().toUpperCase();
@@ -654,13 +701,14 @@ function viewReceive() {
   $("#main").innerHTML = `${dlItem()}${dlLoc()}
     <div class="card"><div class="head"><h3>📥 Thêm dòng nhập</h3></div>
     <label>Mã hàng <span class="req">*</span></label>
-    <div class="row"><input id="ma" autocapitalize="characters" enterkeyhint="next" placeholder="Quét / gõ mã">${scanBtn("ma")}</div>
+    <div class="row"><input id="ma" autocapitalize="characters" enterkeyhint="next" placeholder="Quét / gõ mã hàng">${scanBtn("ma")}</div>
     <div id="ten" class="mut" style="margin-top:5px"></div><div id="picks"></div>
     <label>Số lượng <span class="req">*</span></label><input id="sl" type="number" inputmode="decimal" enterkeyhint="next">
-    <div class="grid3"><div><label>NCC</label><input id="nsx" enterkeyhint="next"></div>
-      <div><label>Số lô</label><input id="lo" enterkeyhint="next"></div>
-      <div><label>HSD</label><input id="hsd" type="date"></div></div>
-    <label>Vị trí (trống = chưa xếp)</label><div class="row"><input id="vt" list="dl-locs" autocapitalize="characters" enterkeyhint="done">${scanBtn("vt")}</div>
+    <div class="grid2"><div><label>Ngày SX</label><input id="nsx" type="date"></div>
+      <div><label>Hạn sử dụng</label><input id="hsd" type="date"></div></div>
+    <label>Vị trí — Pallet / Kiện (trống = chưa xếp)</label>
+    <div class="row"><input id="vt" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">${scanBtn("vt")}</div>
+    <div id="vtpicks"></div>
     <p style="margin-top:14px"><button class="btn alt" id="add" style="width:100%">＋ Thêm vào phiếu</button></p></div>
     <div id="draft"></div>`;
   bindScan($("#main"));
@@ -669,29 +717,30 @@ function viewReceive() {
     $("#ten").textContent = it ? `${vnName(it)} (${it.dvt || ""})` : "";
     renderItemSuggest($("#picks"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
   };
+  attachLoc($("#vt"), $("#vtpicks"), () => $("#add").focus());
   $("#add").onclick = addDraft; renderDraft();
 }
 function addDraft() {
   const ma = $("#ma").value.trim().toUpperCase(), sl = Number($("#sl").value);
   if (!itemView(ma)) return toast("Mã hàng chưa có trong danh mục.", true);
   if (!(sl > 0)) return toast("Nhập số lượng > 0.", true);
-  S.draft.push({ ma_hang: ma, sl, nsx: $("#nsx").value.trim(), lo: $("#lo").value.trim(), hsd: $("#hsd").value, vi_tri: $("#vt").value.trim().toUpperCase() });
+  S.draft.push({ ma_hang: ma, sl, nsx: $("#nsx").value, hsd: $("#hsd").value, vi_tri: $("#vt").value.trim().toUpperCase() });
   vibrate(15);
-  ["#ma", "#sl", "#nsx", "#lo", "#hsd", "#vt"].forEach(s => $(s).value = "");
-  $("#ten").textContent = ""; $("#picks").innerHTML = ""; renderDraft(); toast("Đã thêm dòng."); $("#ma").focus();
+  ["#ma", "#sl", "#nsx", "#hsd", "#vt"].forEach(s => $(s).value = "");
+  $("#ten").textContent = ""; $("#picks").innerHTML = ""; $("#vtpicks").innerHTML = ""; renderDraft(); toast("Đã thêm dòng."); $("#ma").focus();
 }
 function renderDraft() {
   const d = $("#draft"); if (!d) return;
   if (!S.draft.length) { d.innerHTML = ""; return; }
   d.innerHTML = `<div class="card"><div class="head"><h3>Phiếu nháp · ${S.draft.length} dòng</h3></div>
     ${S.draft.map((l, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(l.ma_hang)} · ${fmt(l.sl)}</div>
-      <div class="mut">${esc(nameOf(l.ma_hang))}${l.lo ? " · lô " + esc(l.lo) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
+      <div class="mut">${esc(nameOf(l.ma_hang))}${l.nsx ? " · NSX " + esc(l.nsx) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · 📍 " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
     <label>Nhà cung cấp / ghi chú chung</label><input id="dg" enterkeyhint="done" placeholder="Tuỳ chọn">
     <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu nhập</button></p></div>`;
   $$("#draft [data-del]").forEach(b => b.onclick = () => { S.draft.splice(Number(b.dataset.del), 1); renderDraft(); });
   $("#post").onclick = () => {
-    const lines = S.draft.map(l => ({ ma_hang: l.ma_hang, lo: l.lo, nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl: l.sl }));
+    const lines = S.draft.map(l => ({ ma_hang: l.ma_hang, lo: "", nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl: l.sl }));
     submitVoucher($("#post"), "NHAP", $("#dg").value, "", lines, () => { S.draft = []; viewReceive(); });
   };
 }
@@ -703,13 +752,15 @@ function viewStocktake() {
   $("#main").innerHTML = `${dlLoc()}
     <div class="card"><div class="head"><h3>✅ Vị trí đang kiểm (${k.vts.length})</h3><div class="sp"></div>
     ${k.vts.length ? `<button class="btn ghost sm fit" id="clear">Xoá</button>` : ""}</div>
-    <label>Thêm vị trí</label>
-    <div class="row"><input id="vt" list="dl-locs" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ vị trí">
+    <label>Thêm vị trí (Pallet / Kiện)</label>
+    <div class="row"><input id="vt" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">
       <button class="btn alt fit" type="button" id="scanvt">📷</button><button class="btn fit" type="button" id="addvt">＋</button></div>
+    <div id="vtpicks"></div>
     <div class="filters">${k.vts.map(v => `<button class="on">${esc(v)}</button>`).join("")}</div>
     ${k.vts.length ? `<p style="margin-top:12px"><button class="btn alt" id="load" style="width:100%">⬇ Tải hàng của các vị trí này</button></p>` : ""}</div>
     <div id="kk"></div>`;
-  const addLoc = v => { v = (v || "").trim().toUpperCase(); if (!v) return; if (!k.vts.includes(v)) k.vts.push(v); $("#vt").value = ""; viewStocktake(); };
+  const addLoc = v => { v = (v || "").trim().toUpperCase(); if (!v) return; if (!k.vts.includes(v)) k.vts.push(v); viewStocktake(); };
+  attachLoc($("#vt"), $("#vtpicks"), addLoc);
   $("#addvt").onclick = () => addLoc($("#vt").value);
   $("#scanvt").onclick = () => scanInto($("#vt"), addLoc);
   $("#vt").onkeydown = e => e.key === "Enter" && addLoc($("#vt").value);

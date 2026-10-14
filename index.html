@@ -167,6 +167,7 @@ const today = () => new Date().toLocaleDateString("sv-SE");
 const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 const debounce = (f, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 
+const APP_VER = "v2";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -280,7 +281,7 @@ function renderLogin(force) {
     <label>Tên đăng nhập</label><input id="u" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" enterkeyhint="next">
     <label>Mật khẩu</label><input id="p" type="password" autocapitalize="none" autocorrect="off" autocomplete="current-password" enterkeyhint="go">
     <p><button class="btn" style="width:100%" id="go">Đăng nhập</button></p></div>
-    <p class="hintline" style="text-align:center">Tài khoản do quản trị tạo (dạng <i>ten@kho.local</i>)</p>
+    <p class="hintline" style="text-align:center">Tài khoản do quản trị tạo (dạng <i>ten@kho.local</i>) · ${APP_VER}</p>
     <p class="hintline" style="text-align:center">⚠ Nếu bấm vào ô mà <b>không hiện bàn phím</b>: đang mở trong app (Telegram/Zalo/Facebook). Hãy mở bằng <b>Chrome</b> (Android) / <b>Safari</b> (iPhone) — hoặc <b>⋯ → Mở bằng trình duyệt</b>.</p></div>`;
   const go = async () => {
     const u = $("#u").value.trim().toLowerCase(), p = $("#p").value;
@@ -317,7 +318,7 @@ function shell() {
     <button class="tb" id="out">Thoát</button></header>
     <main id="main"></main>
     <nav>${TABS.map(([k, i, t]) => `<button data-t="${k}"><b>${i}</b>${t}</button>`).join("")}</nav>`;
-  $("#sub").textContent = `${S.me.ho_ten || S.me.username} · ${S.isAdmin ? "Quản trị" : "Nhân viên"}`;
+  $("#sub").textContent = `${S.me.ho_ten || S.me.username} · ${S.isAdmin ? "Quản trị" : "Nhân viên"} · ${APP_VER}`;
   if (deferredInstall) $("#install").style.display = "inline-block";
   $("#install").onclick = async () => {
     if (!deferredInstall) return;

@@ -174,8 +174,18 @@ const fmt = n => (Math.round(Number(n) * 1000) / 1000).toLocaleString("vi-VN");
 const today = () => new Date().toLocaleDateString("sv-SE");
 const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 const debounce = (f, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
+// Ô nhập số: dùng type="text" (tránh lỗi <input type=number> kẹt bàn phím trong trình duyệt trong app / WebView),
+// lọc ký tự cho phép tại đây để chắc chắn gõ được số trên mọi máy.
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (!t || !t.matches || !t.matches('input[inputmode="decimal"]')) return;
+  let v = String(t.value).replace(/[^\d.,]/g, "").replace(/,/g, ".");
+  const i = v.indexOf(".");
+  if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, "");
+  if (v !== t.value) t.value = v;
+}, true);
 
-const APP_VER = "v8";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v9";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -545,7 +555,7 @@ function lotHead(l) {
 }
 function sheetIssue(l) {
   sheet(`${lotHead(l)}<label>Số lượng xuất (tối đa ${fmt(l.sl)})</label>
-    <input id="sl" type="number" inputmode="decimal" enterkeyhint="done" value="${l.sl}">
+    <input id="sl" type="text" inputmode="decimal" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" value="${l.sl}">
     <label>Nơi nhận / khách hàng</label><input id="dt" list="dl-custs" enterkeyhint="done">${dlCust()}
     <label>Ghi chú</label><input id="gc" enterkeyhint="done">
     <p><button class="btn" id="ok" style="width:100%">Xuất kho</button></p>`, (el, close) => {
@@ -563,7 +573,7 @@ function sheetMove(l) {
   sheet(`${lotHead(l)}<label>Vị trí đến (khác vị trí hiện tại)</label>
     <div class="row"><input id="den" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">${scanBtn("den")}</div>
     <div id="denpicks"></div>
-    <label>Số lượng chuyển (tối đa ${fmt(l.sl)})</label><input id="sl" type="number" inputmode="decimal" value="${l.sl}" enterkeyhint="done">
+    <label>Số lượng chuyển (tối đa ${fmt(l.sl)})</label><input id="sl" type="text" inputmode="decimal" autocomplete="off" autocapitalize="none" spellcheck="false" value="${l.sl}" enterkeyhint="done">
     <label>Ghi chú</label><input id="gc" enterkeyhint="done">
     <p><button class="btn" id="ok" style="width:100%">Chuyển vị trí</button></p>`, (el, close) => {
     attachLoc($("#den", el), $("#denpicks", el), () => $("#sl", el).focus());
@@ -624,7 +634,7 @@ function viewIssue() {
       <div class="row"><input id="ma" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên" enterkeyhint="next">${scanBtn("ma")}</div>
       <div id="tip" class="mut" style="margin-top:5px;min-height:18px"></div>
       <div id="picksh"></div>
-      <div class="row" style="margin-top:2px"><input id="sl" type="number" inputmode="decimal" placeholder="Số lượng" enterkeyhint="done"><button class="btn fit" id="add" style="min-width:56px">＋</button></div>
+      <div class="row" style="margin-top:2px"><input id="sl" type="text" inputmode="decimal" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Số lượng" enterkeyhint="done"><button class="btn fit" id="add" style="min-width:56px">＋</button></div>
       <div id="order"></div>
     </div>
     <p class="hintline">Hệ thống tự lấy lô theo <b>${esc(S.xuatRule)}</b> (nhập trước xuất trước, bỏ hàng hết hạn). Bấm <b>Xem &amp; xuất kho</b> để xem lấy ở đâu, số lượng bao nhiêu rồi mới ghi sổ.</p>`;
@@ -705,7 +715,7 @@ function viewReceive() {
     <label>Mã hàng <span class="req">*</span></label>
     <div class="row"><input id="ma" autocapitalize="characters" enterkeyhint="next" placeholder="Quét / gõ mã hàng">${scanBtn("ma")}</div>
     <div id="ten" class="mut" style="margin-top:5px"></div><div id="picks"></div>
-    <label>Số lượng <span class="req">*</span></label><input id="sl" type="number" inputmode="decimal" enterkeyhint="next">
+    <label>Số lượng <span class="req">*</span></label><input id="sl" type="text" inputmode="decimal" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="next">
     <div class="grid2"><div><label>Ngày SX</label><input id="nsx" type="date"></div>
       <div><label>Hạn sử dụng</label><input id="hsd" type="date"></div></div>
     <label>Vị trí — Pallet / Kiện (trống = chưa xếp)</label>
@@ -788,7 +798,7 @@ function renderKK() {
     ${k.locs[vt].map((r, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(r.ma_hang)}</div>
       <div class="mut">${esc(r.ten)}${r.lo ? " · lô " + esc(r.lo) : ""}${r.hsd ? " · HSD " + esc(r.hsd) : ""}</div></div>
       <div class="fit" style="text-align:right"><div class="mut">Sổ sách</div><b>${fmt(r.sl)}</b></div></div>
-      <div class="row" style="margin:6px 0 2px"><input type="number" inputmode="decimal" data-vt="${esc(vt)}" data-i="${i}" placeholder="Thực tế (mặc định ${fmt(r.sl)})">
+      <div class="row" style="margin:6px 0 2px"><input type="text" inputmode="decimal" autocomplete="off" autocapitalize="none" spellcheck="false" data-vt="${esc(vt)}" data-i="${i}" placeholder="Thực tế (mặc định ${fmt(r.sl)})">
       <button class="btn alt sm fit" data-same data-vt="${esc(vt)}" data-i="${i}">= sổ</button></div>`).join("")}</div>`).join("") +
     `<p style="margin-top:12px"><button class="btn" id="save" style="width:100%">✔ Ghi biên bản kiểm kê</button></p>`;
   const findInput = (vt, i) => $$("#kk input[data-i]").find(x => x.dataset.vt === vt && x.dataset.i === String(i));

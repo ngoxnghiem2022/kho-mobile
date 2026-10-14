@@ -175,7 +175,7 @@ const today = () => new Date().toLocaleDateString("sv-SE");
 const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 const debounce = (f, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 
-const APP_VER = "v6";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v8";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -224,7 +224,7 @@ function renderItemSuggest(box, raw, onPick, onlyStock) {
     pk.map(p => {
       const vn = vnName(p);
       return `<button type="button" data-pick="${esc(p.ma)}">
-        <span class="r1"><span class="code">${hlText(p.ma, q)}</span><span class="dv">${esc(p.dvt || "")}</span></span>
+        <span class="r1"><span class="code">${hlText(p.ma, q)}</span><span class="dv">${esc(p.dvt || "")}${onlyStock ? " · tồn " + fmt(S.inStock.get(p.ma) || 0) : ""}</span></span>
         <span class="vn">${hlText(vn, q)}</span></button>`;
     }).join("") + `</div>`;
   box.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => onPick(b.dataset.pick));
@@ -318,7 +318,7 @@ async function loadRef() {
     must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat"])),
     must(sb.from("v_stock_tong").select("ma,tong").gt("tong", 0)),
   ]);
-  Object.assign(S, { items, locs, custs, inStock: new Set((stk || []).map(r => r.ma)) });
+  Object.assign(S, { items, locs, custs, inStock: new Map((stk || []).map(r => [r.ma, Number(r.tong)])) });
   const g = Object.fromEntries((setRows || []).map(r => [r.key, r.value]));
   S.warnDays = Number(g.hsd_canh_bao) || 30;
   S.chuyDays = Number(g.hsd_chu_y) || 90;
@@ -618,10 +618,10 @@ function allocToLines(out) {
 // ------------------------------------------------------------------ TAB: Xuất hàng
 function viewIssue() {
   $("#title").textContent = "Xuất hàng"; $("#sub").textContent = `Tự động ${ruleName[S.xuatRule] || S.xuatRule}`;
-  $("#main").innerHTML = `${dlItem()}
+  $("#main").innerHTML = `
     <div class="card"><div class="head"><h3>📤 Lập phiếu xuất</h3></div>
       <label>Thêm mặt hàng (chỉ mã đang có tồn)</label>
-      <div class="row"><input id="ma" list="dl-items" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên" enterkeyhint="next">${scanBtn("ma")}</div>
+      <div class="row"><input id="ma" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên" enterkeyhint="next">${scanBtn("ma")}</div>
       <div id="tip" class="mut" style="margin-top:5px;min-height:18px"></div>
       <div id="picksh"></div>
       <div class="row" style="margin-top:2px"><input id="sl" type="number" inputmode="decimal" placeholder="Số lượng" enterkeyhint="done"><button class="btn fit" id="add" style="min-width:56px">＋</button></div>

@@ -169,7 +169,7 @@ const today = () => new Date().toLocaleDateString("sv-SE");
 const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 const debounce = (f, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 
-const APP_VER = "v3";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v4";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -214,11 +214,10 @@ function renderItemSuggest(box, raw, onPick) {
   if (!pk.length) { box.innerHTML = `<div class="hintline" style="margin-top:8px">Không tìm thấy mã / tên phù hợp — kiểm tra lại.</div>`; return; }
   box.innerHTML = `<div class="pick-hd">Chọn mặt hàng</div><div class="ipick">` +
     pk.map(p => {
-      const vn = vnName(p), en = String(p.ten || "").trim();
+      const vn = vnName(p);
       return `<button type="button" data-pick="${esc(p.ma)}">
         <span class="r1"><span class="code">${hlText(p.ma, q)}</span><span class="dv">${esc(p.dvt || "")}</span></span>
-        <span class="vn">${hlText(vn, q)}</span>
-        ${en && en !== vn ? `<span class="en">${esc(en)}</span>` : ""}</button>`;
+        <span class="vn">${hlText(vn, q)}</span></button>`;
     }).join("") + `</div>`;
   box.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => onPick(b.dataset.pick));
 }

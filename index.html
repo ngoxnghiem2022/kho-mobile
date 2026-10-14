@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
+<meta name="theme-color" content="#0b5f59">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,80 +14,135 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>Kho Mobile</title>
 <style>
-:root{--bg:#f4f6f8;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--pri:#0f766e;--pri2:#ccfbf1;
---warn:#b45309;--warnbg:#fef3c7;--bad:#b91c1c;--badbg:#fee2e2;--ok:#15803d;--tap:#f1f5f9}
-@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#131c2e;--ink:#e5e7eb;--mut:#94a3b8;--line:#1f2a3f;
---pri:#2dd4bf;--pri2:#0f3b38;--warn:#fbbf24;--warnbg:#3a2a0a;--bad:#f87171;--badbg:#3b1414;--ok:#4ade80;--tap:#1c2740}}
+:root{
+  --bg:#eef2f6; --bg2:#e3e9f0; --card:#ffffff; --ink:#0f172a; --mut:#64748b; --line:#e2e8f0;
+  --pri:#0f766e; --pri-d:#0b5f59; --pri2:#e6fffb; --pri-ink:#0b5f59;
+  --warn:#b45309; --warnbg:#fef3c7; --bad:#b91c1c; --badbg:#fee2e2; --ok:#15803d; --okbg:#dcfce7;
+  --tap:#f1f5f9; --shadow:0 1px 2px rgba(15,23,42,.04),0 6px 20px rgba(15,23,42,.06);
+  --radius:16px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#070c16; --bg2:#0b1220; --card:#111a2b; --ink:#e5e7eb; --mut:#94a3b8; --line:#1e293b;
+  --pri:#2dd4bf; --pri-d:#0f3b38; --pri2:#0f3b38; --pri-ink:#7ff3e4;
+  --warn:#fbbf24; --warnbg:#3a2a0a; --bad:#f87171; --badbg:#3b1414; --ok:#4ade80; --okbg:#052e1b;
+  --tap:#1a2437; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-padding-bottom:calc(70px + env(safe-area-inset-bottom));overscroll-behavior-y:contain}
-header{position:sticky;top:0;z-index:5;background:var(--pri);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
-display:flex;align-items:center;gap:8px}
-header h1{font-size:16px;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-header .tb{background:transparent;color:#fff;border:1px solid #ffffff55;border-radius:9px;padding:8px 11px;font-size:13px;font-family:inherit}
-main{padding:12px 12px 4px;max-width:720px;margin:0 auto}
+body{margin:0;background:linear-gradient(180deg,var(--bg2),var(--bg) 220px);color:var(--ink);
+font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+padding-bottom:calc(74px + env(safe-area-inset-bottom));overscroll-behavior-y:contain}
+header{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--pri),var(--pri-d));color:#fff;
+padding:calc(11px + env(safe-area-inset-top)) 14px 13px;display:flex;align-items:center;gap:10px;
+box-shadow:0 6px 18px rgba(11,95,89,.25)}
+header .brand{flex:1;min-width:0}
+header .brand b{display:block;font-size:16px;font-weight:700;letter-spacing:.2px}
+header .brand span{display:block;font-size:12px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .tb{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.32);border-radius:11px;
+padding:8px 11px;font:600 13px inherit;backdrop-filter:blur(4px)}
+header .tb:active{background:rgba(255,255,255,.28)}
+main{padding:14px 13px 6px;max-width:760px;margin:0 auto}
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);
-padding-bottom:env(safe-area-inset-bottom);z-index:6}
-nav button{flex:1;border:0;background:none;color:var(--mut);padding:9px 2px 8px;font-size:11.5px;font-family:inherit;position:relative}
-nav button b{display:block;font-size:21px;line-height:1.15}
-nav button.on{color:var(--pri);font-weight:600}
+padding-bottom:env(safe-area-inset-bottom);z-index:8;box-shadow:0 -6px 20px rgba(15,23,42,.06)}
+nav button{flex:1;border:0;background:none;color:var(--mut);padding:9px 2px 8px;font:inherit;font-size:11px;
+position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button b{font-size:20px;line-height:1.05;font-weight:400}
+nav button.on{color:var(--pri)}
+nav button.on::before{content:"";position:absolute;top:4px;width:26px;height:3px;border-radius:3px;background:var(--pri)}
 nav button:active{background:var(--tap)}
-input,select,textarea{width:100%;font:16px/1.3 inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);
-border-radius:11px;padding:12px;min-height:48px;-webkit-appearance:none;appearance:none}
-input:focus,select,textarea:focus{border-color:var(--pri);outline:none}
-select{background-image:none}
-select[size],select.multi{min-height:auto;height:auto;padding:4px}
-input[type=date]{min-height:48px}
-label{display:block;font-size:13px;color:var(--mut);margin:11px 0 5px}
+h2,h3{margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:11px 0;
+box-shadow:var(--shadow)}
+.card>.head{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.card h3{font-size:15px;font-weight:700;letter-spacing:.1px}
+.card .head .sp{flex:1}
+.section{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+margin:16px 4px 4px}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin:12px 0 5px}
 label .req{color:var(--bad)}
-.btn{border:0;border-radius:11px;padding:13px 16px;font:600 16px/1.1 inherit;background:var(--pri);color:#fff;min-height:48px}
-.btn:active{filter:brightness(.94)}
-.btn.alt{background:var(--pri2);color:var(--pri)}
+input,select,textarea{width:100%;font:16px/1.3 inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);
+border-radius:12px;padding:12px 13px;min-height:48px;-webkit-appearance:none;appearance:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--pri);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 18%,transparent)}
+input::placeholder{color:color-mix(in srgb,var(--mut) 80%,transparent)}
+.btn{border:0;border-radius:12px;padding:13px 16px;font:700 16px/1.1 inherit;background:var(--pri);color:#fff;
+min-height:48px;transition:filter .12s,transform .06s}
+.btn:active{filter:brightness(.95);transform:translateY(1px)}
+.btn.alt{background:var(--pri2);color:var(--pri-ink)}
+.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .btn.bad{background:var(--badbg);color:var(--bad)}
-.btn.sm{padding:10px 12px;min-height:42px;font-size:14px}
+.btn.ok{background:var(--okbg);color:var(--ok)}
+.btn.sm{padding:10px 12px;min-height:42px;font-size:14px;border-radius:11px}
 .btn:disabled{opacity:.5}
-.row{display:flex;gap:8px;align-items:center}
+.row{display:flex;gap:9px;align-items:center}
 .row>*{flex:1;min-width:0}.row>.fit{flex:none}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
-.card h3{margin:0;font-size:16px}
-.mut{color:var(--mut);font-size:13px}
-.tot{font-weight:700;font-size:18px;white-space:nowrap}
-.lot{display:flex;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.mut{color:var(--mut);font-size:12.5px}
+.tot{font-weight:800;font-size:19px;white-space:nowrap;letter-spacing:-.2px}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700}
+.lot{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px dashed var(--line)}
+.lot:first-child{border-top:0}
 .lot .info{flex:1;min-width:0}
-.lot .vt{font-weight:600}
-.chip{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;background:var(--pri2);color:var(--pri);margin:2px 4px 2px 0;vertical-align:middle}
+.lot .vt{font-weight:700}
+.chip{display:inline-block;border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:600;
+background:var(--pri2);color:var(--pri-ink);margin:2px 4px 2px 0;vertical-align:middle}
 .chip.warn{background:var(--warnbg);color:var(--warn)}.chip.bad{background:var(--badbg);color:var(--bad)}
-.filters{display:flex;gap:8px;overflow-x:auto;padding:6px 0;scrollbar-width:none}
+.chip.ok{background:var(--okbg);color:var(--ok)}.chip.gray{background:var(--tap);color:var(--mut)}
+.seg{display:flex;gap:4px;background:var(--tap);border-radius:12px;padding:4px}
+.seg button{flex:1;border:0;background:none;color:var(--mut);font:600 13px inherit;padding:9px 6px;border-radius:9px}
+.seg button.on{background:var(--card);color:var(--pri);box-shadow:var(--shadow)}
+.filters{display:flex;gap:8px;overflow-x:auto;padding:4px 0;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
-.filters button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:14px}
+.filters button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+padding:8px 14px;font:600 13.5px inherit}
 .filters button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
-.sheet-bg{position:fixed;inset:0;background:#0007;z-index:20;display:flex;align-items:flex-end}
-.sheet{background:var(--card);width:100%;max-width:720px;margin:0 auto;border-radius:18px 18px 0 0;padding:16px;
-max-height:90vh;overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
-#toast{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:40;background:#0f172a;color:#fff;
-padding:12px 14px;border-radius:11px;display:none;white-space:pre-wrap;box-shadow:0 8px 30px #0004}
+.sheet-bg{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:20;display:flex;align-items:flex-end;
+backdrop-filter:blur(1px)}
+.sheet{background:var(--card);width:100%;max-width:760px;margin:0 auto;border-radius:22px 22px 0 0;padding:16px 16px 14px;
+max-height:90vh;overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+.sheet .grab{width:40px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 12px}
+#toast{position:fixed;left:13px;right:13px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:40;background:#0f172a;color:#fff;
+padding:13px 15px;border-radius:13px;display:none;white-space:pre-wrap;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:14px}
 #toast.err{background:var(--bad)}
-.login{max-width:360px;margin:12vh auto 0;padding:0 16px}
-.login h2{text-align:center}
+.login{max-width:370px;margin:9vh auto 0;padding:0 18px}
+.login .logo{width:66px;height:66px;border-radius:18px;margin:0 auto 6px;display:grid;place-items:center;
+background:linear-gradient(135deg,var(--pri),var(--pri-d));color:#fff;font:800 20px system-ui;box-shadow:var(--shadow)}
+.login h2{text-align:center;font-size:20px;margin:6px 0 2px}
+.login .sub{text-align:center;color:var(--mut);font-size:13px;margin-bottom:14px}
 .scanbox{position:fixed;inset:0;background:#000;z-index:50;display:flex;flex-direction:column}
 .scanbox video{flex:1;object-fit:cover;width:100%}
 .scanbox .btn{margin:12px}
 .scanbox .hint{color:#fff;text-align:center;font-size:13px;padding:8px}
-.empty{text-align:center;color:var(--mut);padding:30px 0}
-.hintline{font-size:12px;color:var(--mut);margin-top:4px}
+.empty{text-align:center;color:var(--mut);padding:34px 10px;font-size:14px}
+.hintline{font-size:12px;color:var(--mut);margin-top:6px;line-height:1.5}
 .searchwrap{position:relative}
-.searchwrap .clr{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--mut);font-size:20px;padding:8px}
-.badge{position:absolute;top:4px;left:50%;transform:translateX(14px);background:var(--bad);color:#fff;border-radius:999px;
-font-size:10px;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 4px}
-.badge.hide{display:none}
-.more{margin-top:6px;text-align:center}
-.more button{border:0;background:none;color:var(--pri);font:600 14px inherit;padding:8px}
-.spin{display:inline-block;width:16px;height:16px;border:2px solid #fff6;border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px}
+.searchwrap .clr{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--mut);
+font-size:22px;padding:8px;line-height:1}
+.picks{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.picks button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font:600 13px inherit;color:var(--ink)}
+.pick-hd{font-size:12px;color:var(--mut);margin:10px 2px 0}
+.more{margin-top:8px;text-align:center}
+.more button{border:0;background:none;color:var(--pri);font:700 14px inherit;padding:10px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
+border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px}
 @keyframes sp{to{transform:rotate(360deg)}}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-@media(min-width:560px){body{font-size:15.5px}}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+/* pick list */
+.pickrow{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-top:1px dashed var(--line)}
+.pickrow:first-child{border-top:0}
+.pickrow .box{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);flex:none;display:grid;place-items:center;
+color:#fff;font-size:14px;margin-top:1px;transition:.15s}
+.pickrow.done .box{background:var(--ok);border-color:var(--ok)}
+.pickrow.done .info{opacity:.55;text-decoration:line-through}
+.pickrow .info{flex:1;min-width:0}
+.loc{display:inline-flex;align-items:center;gap:5px;background:var(--pri2);color:var(--pri-ink);border-radius:9px;
+padding:3px 9px;font:700 13px ui-monospace,Menlo,Consolas,monospace;margin-bottom:3px}
+.qtypill{font-weight:800;font-size:16px}
+.stat{display:flex;gap:9px;background:var(--tap);border-radius:12px;padding:10px 12px;margin-top:6px;flex-wrap:wrap}
+.stat div{flex:1;min-width:72px}
+.stat b{display:block;font-size:17px}
+.stat span{font-size:11.5px;color:var(--mut)}
+.loc-group{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:8px 0}
+.loc-group h4{margin:2px 0 4px;font-size:14px;display:flex;align-items:center;gap:6px}
 </style>
 </head>
 <body>
@@ -102,70 +157,63 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt = n => (Math.round(Number(n) * 1000) / 1000).toLocaleString("vi-VN");
 const today = () => new Date().toLocaleDateString("sv-SE");
+const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 const debounce = (f, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
-  document.getElementById("app").innerHTML = `<div class="login"><h2>Kho Mobile</h2>
-    <p class="mut">Chưa cấu hình kết nối. Mở file <b>config.js</b> và điền <b>url</b> + <b>anonKey</b> của Supabase.</p></div>`;
+  document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
+    <h2>Kho Mobile</h2><div class="sub">Chưa cấu hình kết nối</div>
+    <p class="mut">Mở file <b>config.js</b> và điền <b>url</b> + <b>anonKey</b> của Supabase.</p></div>`;
   throw new Error("missing WMS_CONFIG");
 }
 const sb = supabase.createClient(cfg.url, cfg.anonKey);
 
-const PAGE = 60;                          // số mã hàng tải mỗi lượt (phân trang)
-const TABS = [["ton","🔎","Tồn kho"],["nhap","📥","Nhập"],["kk","✅","Kiểm kê"],["phieu","🧾","Phiếu"]];
-const LS_ME = "kho_me";                   // nhớ hồ sơ để mở nhanh
+const PAGE = 60;
+const TABS = [["ton","🔎","Tồn kho"],["nhap","📥","Nhập"],["xuat","📤","Xuất"],["kk","✅","Kiểm kê"],["phieu","🧾","Phiếu"]];
+const LS_ME = "kho_me";
 const S = {
   tab: "ton", me: null, isAdmin: false,
-  items: [], locs: [], custs: [],
-  warnDays: 30, chuyDays: 90, xuatRule: "FIFO",
-  // tồn
-  q: "", viTri: "", filter: "all", sums: [], by: {}, offset: 0, hasMore: false, loading: false,
-  // phiếu
-  vFilter: "all", vOffset: 0, vMore: false,
-  // nhập
-  draft: [],
-  // kiểm kê
+  items: [], locs: [], custs: [], warnDays: 30, chuyDays: 90, xuatRule: "FIFO",
+  q: "", viTri: "", filter: "all", sums: [], by: {}, offset: 0, loading: false,
+  vFilter: "all", vOffset: 0,
+  draft: [],                       // phiếu nháp NHẬP
+  order: [],                       // phiếu nháp XUẤT {ma_hang, sl}
   kk: { vts: [], locs: {}, confirmed: false },
 };
-const TTL_MS = 5 * 60 * 1000;             // làm mới danh mục sau 5 phút
+const TTL_MS = 5 * 60 * 1000;
 
 // ------------------------------------------------------------------ tiện ích
 function toast(msg, err) {
   const t = $("#toast"); t.textContent = msg; t.className = err ? "err" : ""; t.style.display = "block";
-  clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = "none", err ? 7000 : 2500);
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = "none", err ? 7000 : 2600);
   if (navigator.vibrate) navigator.vibrate(err ? [40, 60, 40] : 15);
 }
-async function rpc(fn, args) {
-  const { data, error } = await sb.rpc(fn, args);
-  if (error) throw new Error(error.message);
-  return data;
-}
+async function rpc(fn, args) { const { data, error } = await sb.rpc(fn, args); if (error) throw new Error(error.message); return data; }
 async function must(q) { const { data, error } = await q; if (error) throw new Error(error.message); return data; }
 function busy(btn, on, label) {
   if (!btn) return;
   if (on) { btn.disabled = true; btn.dataset.txt = btn.innerHTML; btn.innerHTML = `<span class="spin"></span> ${label || "Đang lưu…"}`; }
   else if (btn.dataset.txt) { btn.disabled = false; btn.innerHTML = btn.dataset.txt; }
 }
-function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
+const vibrate = p => navigator.vibrate && navigator.vibrate(p);
 function withSearch(items, keys, q) {
   const f = items.filter(x => keys.some(k => String(x[k] || "").toLowerCase().includes(q)));
   f.sort((a, b) => {
     const am = String(a[keys[0]] || "").toLowerCase() === q ? 0 : 1, bm = String(b[keys[0]] || "").toLowerCase() === q ? 0 : 1;
-    if (am !== bm) return am - bm;
-    return String(a[keys[0]] || "").localeCompare(String(b[keys[0]] || ""), "vi");
+    return am - bm || String(a[keys[0]] || "").localeCompare(String(b[keys[0]] || ""), "vi");
   });
   return f;
 }
 function quickPicks(items, keys, q, n = 6) {
   if (!q) return [];
-  const starts = items.filter(x => keys.some(k => String(x[k] || "").toLowerCase().startsWith(q)));
-  if (starts.length) return starts.slice(0, n);
-  return withSearch(items, keys, q).slice(0, n);
+  const s = items.filter(x => keys.some(k => String(x[k] || "").toLowerCase().startsWith(q)));
+  return (s.length ? s : withSearch(items, keys, q)).slice(0, n);
 }
-function itemView(ma) { return S.items.find(i => i.ma === ma); }
+const itemView = ma => S.items.find(i => i.ma === ma);
+const ruleName = { FIFO: "FIFO · nhập trước xuất trước", FEFO: "FEFO · hạn dùng gần nhất trước", LIFO: "LIFO · nhập sau xuất trước" };
 
-// ------------------------------------------------------------------ luồng: đăng nhập / khởi động
+// ------------------------------------------------------------------ đăng nhập / khởi động
 async function boot() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return renderLogin();
@@ -174,18 +222,18 @@ async function boot() {
 async function startApp(session) {
   try {
     const prof = await must(sb.from("profiles").select("id,username,ho_ten,vai_tro,active").eq("id", session.user.id).maybeSingle());
-    if (!prof || !prof.active) { await sb.auth.signOut(); renderLogin(); return toast("Tài khoản chưa được cấp quyền.", true); }
+    if (!prof || !prof.active) { await sb.auth.signOut(); renderLogin(true); return toast("Tài khoản chưa được cấp quyền.", true); }
     S.me = prof; S.isAdmin = prof.vai_tro === "admin";
     localStorage.setItem(LS_ME, JSON.stringify({ username: prof.username, ho_ten: prof.ho_ten, vai_tro: prof.vai_tro }));
     await loadRef();
-  } catch (e) { renderLogin(); toast(e.message, true); }
+  } catch (e) { renderLogin(true); toast(e.message, true); }
 }
-function cachedMe() { try { return JSON.parse(localStorage.getItem(LS_ME) || "null"); } catch { return null; } }
+const cachedMe = () => { try { return JSON.parse(localStorage.getItem(LS_ME) || "null"); } catch { return null; } };
 
 let _refAt = 0;
 async function loadRef() {
   const [items, locs, custs, setRows] = await Promise.all([
-    must(sb.from("items").select("ma,ten,dvt,han_dung,ton_toi_thieu").order("ma")),
+    must(sb.from("items").select("ma,ten,dvt,ton_toi_thieu").order("ma")),
     must(sb.from("locations").select("ma,loai,cha").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
     must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat"])),
@@ -196,20 +244,21 @@ async function loadRef() {
   S.chuyDays = Number(g.hsd_chu_y) || 90;
   S.xuatRule = g.nguyen_tac_xuat || "FIFO";
   _refAt = Date.now();
-  if (!S._shelled) { S._shelled = true; shell(); }
-  else refreshCurrent();
+  if (!S._shelled) { S._shelled = true; shell(); } else refreshCurrent();
 }
 function refreshRef(force) { if (force || Date.now() - _refAt > TTL_MS) loadRef().catch(() => {}); }
 
-// ------------------------------------------------------------------ khung giao diện
+// ------------------------------------------------------------------ khung
 function renderLogin(force) {
   if (!force && cachedMe()) return renderQuickOpen(cachedMe());
-  $("#app").innerHTML = `<div class="login"><h2>Kho Mobile</h2>
+  $("#app").innerHTML = `<div class="login"><div class="logo">KHO</div>
+    <h2>Kho Mobile</h2><div class="sub">Quản lý kho trên điện thoại</div>
+    <div class="card" style="margin-top:0">
     <label>Tên đăng nhập</label><input id="u" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" enterkeyhint="next">
-    <label>Mật khẩu</label><input id="p" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="current-password" enterkeyhint="go">
-    <p><button class="btn" style="width:100%" id="go">Đăng nhập</button></p>
-    <p class="hintline" style="text-align:center">Tài khoản do quản trị tạo trên Supabase (dạng <i>ten@kho.local</i>)</p>
-    <p class="hintline" style="text-align:center">⚠ Nếu bấm vào ô mà <b>không hiện bàn phím</b>: đang mở trong trình duyệt của app (Telegram/Zalo/Facebook). Hãy mở bằng <b>Chrome</b> (Android) hoặc <b>Safari</b> (iPhone) — hoặc bấm <b>⋯ → Mở bằng trình duyệt</b>.</p></div>`;
+    <label>Mật khẩu</label><input id="p" type="password" autocapitalize="none" autocorrect="off" autocomplete="current-password" enterkeyhint="go">
+    <p><button class="btn" style="width:100%" id="go">Đăng nhập</button></p></div>
+    <p class="hintline" style="text-align:center">Tài khoản do quản trị tạo (dạng <i>ten@kho.local</i>)</p>
+    <p class="hintline" style="text-align:center">⚠ Nếu bấm vào ô mà <b>không hiện bàn phím</b>: đang mở trong app (Telegram/Zalo/Facebook). Hãy mở bằng <b>Chrome</b> (Android) / <b>Safari</b> (iPhone) — hoặc <b>⋯ → Mở bằng trình duyệt</b>.</p></div>`;
   const go = async () => {
     const u = $("#u").value.trim().toLowerCase(), p = $("#p").value;
     if (!u || !p) return;
@@ -222,29 +271,30 @@ function renderLogin(force) {
   $("#u").onkeydown = e => e.key === "Enter" && $("#p").focus();
   $("#p").onkeydown = e => e.key === "Enter" && go();
 }
-
 function renderQuickOpen(me) {
-  $("#app").innerHTML = `<div class="login"><h2>Kho Mobile</h2>
-    <div class="card"><div class="row"><div><h3>${esc(me.ho_ten || me.username)}</h3>
-    <div class="mut">${esc(me.username)} · ${me.vai_tro === "admin" ? "Quản trị" : "Nhân viên"}</div></div></div>
-    <p><button class="btn" style="width:100%" id="reenter">Mở lại phiên</button></p></div>
-    <p style="text-align:center"><button class="btn alt" id="other" style="width:100%">Đăng nhập tài khoản khác</button></p></div>`;
+  $("#app").innerHTML = `<div class="login"><div class="logo">KHO</div>
+    <h2>Kho Mobile</h2><div class="sub">Xin chào trở lại</div>
+    <div class="card" style="margin-top:0"><div class="head"><div>
+      <h3>${esc(me.ho_ten || me.username)}</h3>
+      <div class="mut">${esc(me.username)} · ${me.vai_tro === "admin" ? "Quản trị" : "Nhân viên"}</div></div></div>
+      <p><button class="btn" style="width:100%" id="reenter">Mở lại phiên</button></p></div>
+    <p style="text-align:center"><button class="btn ghost" id="other" style="width:100%">Đăng nhập tài khoản khác</button></p></div>`;
   $("#reenter").onclick = async () => {
     busy($("#reenter"), true, "Đang mở…");
     const { data: { session } } = await sb.auth.getSession();
-    if (session) startApp(session);
-    else renderLogin(true);
+    if (session) startApp(session); else renderLogin(true);
   };
   $("#other").onclick = () => { localStorage.removeItem(LS_ME); renderLogin(true); };
 }
-
 function shell() {
-  $("#app").innerHTML = `<header><h1 id="title">Kho</h1>
-    <button class="tb" id="install" style="display:none" title="Cài đặt ứng dụng">⬇ Cài</button>
+  $("#app").innerHTML = `<header>
+    <div class="brand"><b id="title">Kho</b><span id="sub"></span></div>
+    <button class="tb" id="install" style="display:none" title="Cài đặt">⬇ Cài</button>
     <button class="tb" id="ref" title="Làm mới">⟳</button>
     <button class="tb" id="out">Thoát</button></header>
     <main id="main"></main>
     <nav>${TABS.map(([k, i, t]) => `<button data-t="${k}"><b>${i}</b>${t}</button>`).join("")}</nav>`;
+  $("#sub").textContent = `${S.me.ho_ten || S.me.username} · ${S.isAdmin ? "Quản trị" : "Nhân viên"}`;
   if (deferredInstall) $("#install").style.display = "inline-block";
   $("#install").onclick = async () => {
     if (!deferredInstall) return;
@@ -262,22 +312,21 @@ function shell() {
 function go(tab) {
   S.tab = tab;
   $$("nav button").forEach(b => b.classList.toggle("on", b.dataset.t === tab));
-  refreshRef(false);
-  refreshCurrent();
+  refreshRef(false); refreshCurrent();
 }
 function refreshCurrent(forceRef) {
   if (forceRef) refreshRef(true);
-  const main = $("#main"); const y = window.scrollY;
-  ({ ton: viewStock, nhap: viewReceive, kk: viewStocktake, phieu: viewVouchers })[S.tab]();
+  const y = window.scrollY;
+  ({ ton: viewStock, nhap: viewReceive, xuat: viewIssue, kk: viewStocktake, phieu: viewVouchers })[S.tab]();
   if (!forceRef) window.scrollTo(0, y); else window.scrollTo(0, 0);
 }
 
-// ------------------------------------------------------------------ quét mã vạch
+// ------------------------------------------------------------------ quét mã
 async function scanInto(input, onValue) {
   if (!("BarcodeDetector" in window)) return toast("Trình duyệt chưa hỗ trợ quét mã – hãy gõ tay.", true);
   let stream;
   try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } }); }
-  catch { return toast("Không mở được camera. Cần chạy trên HTTPS và cho phép truy cập camera.", true); }
+  catch { return toast("Không mở được camera. Cần HTTPS và cho phép truy cập camera.", true); }
   const box = document.createElement("div"); box.className = "scanbox";
   box.innerHTML = `<video playsinline autoplay muted></video><div class="hint">Đưa mã vào giữa khung hình…</div><button class="btn alt">Đóng</button>`;
   document.body.append(box);
@@ -287,9 +336,8 @@ async function scanInto(input, onValue) {
   $("button", box).onclick = stop;
   (async function loop() {
     while (live) {
-      try {
-        const r = await det.detect(video);
-        if (r.length) { const val = r[0].rawValue; input.value = val; input.dispatchEvent(new Event("input", { bubbles: true })); vibrate(30); stop(); if (onValue) onValue(val); return; }
+      try { const r = await det.detect(video);
+        if (r.length) { const v = r[0].rawValue; input.value = v; input.dispatchEvent(new Event("input", { bubbles: true })); vibrate(30); stop(); onValue && onValue(v); return; }
       } catch {}
       await new Promise(r => setTimeout(r, 220));
     }
@@ -301,20 +349,22 @@ function bindScan(root) { root.querySelectorAll("[data-scan]").forEach(b => b.on
 // ------------------------------------------------------------------ bottom sheet
 function sheet(html, onMount) {
   const bg = document.createElement("div"); bg.className = "sheet-bg";
-  bg.innerHTML = `<div class="sheet">${html}</div>`;
+  bg.innerHTML = `<div class="sheet"><div class="grab"></div>${html}</div>`;
   bg.onclick = e => e.target === bg && bg.remove();
-  document.body.append(bg);
-  bindScan(bg); onMount && onMount(bg.firstChild, () => bg.remove());
+  document.body.append(bg); bindScan(bg); onMount && onMount($(".sheet", bg), () => bg.remove());
   return bg;
 }
+const dlCust = () => `<datalist id="dl-custs">${S.custs.map(c => `<option value="${esc(c.ten || c.ma)}"></option>`).join("")}</datalist>`;
+const dlLoc = () => `<datalist id="dl-locs">${S.locs.map(l => `<option value="${esc(l.ma)}"></option>`).join("")}</datalist>`;
+const dlItem = () => `<datalist id="dl-items">${S.items.map(i => `<option value="${esc(i.ma)}">${esc(i.ten)}</option>`).join("")}</datalist>`;
 
 // ------------------------------------------------------------------ TAB: Tồn kho
 function viewStock() {
-  $("#title").textContent = "Tồn kho";
-  $("#main").innerHTML = `<div class="searchwrap"><input id="q" type="search" placeholder="Mã / tên hàng…" value="${esc(S.q)}" enterkeyhint="search"><button class="clr" id="clr" style="display:${S.q ? "block" : "none"}">×</button></div>
-    <div class="row" style="margin-top:8px"><input id="vt" placeholder="Vị trí (tuỳ chọn)" value="${esc(S.viTri)}" autocapitalize="characters" enterkeyhint="search">${scanBtn("vt")}<button class="btn fit sm" id="vgo">Lọc</button></div>
-    <div class="hintline" id="qhint"></div>
-    <div class="filters">${[["all","Có tồn"],["exp","Sắp hết hạn"],["min","Dưới tối thiểu"]]
+  $("#title").textContent = "Tồn kho"; $("#sub").textContent = "Tra cứu tồn theo mã / vị trí";
+  $("#main").innerHTML = `${dlCust()}${dlLoc()}
+    <div class="searchwrap"><input id="q" type="search" placeholder="Mã / tên hàng…" value="${esc(S.q)}" enterkeyhint="search"><button class="clr" id="clr" style="display:${S.q ? "block" : "none"}">×</button></div>
+    <div class="row" style="margin-top:9px"><input id="vt" placeholder="Lọc theo vị trí (tuỳ chọn)" value="${esc(S.viTri)}" autocapitalize="characters" enterkeyhint="search">${scanBtn("vt")}<button class="btn alt fit sm" id="vgo">Lọc</button></div>
+    <div class="seg" style="margin-top:11px">${[["all","Có tồn"],["exp","Sắp hết hạn"],["min","Dưới tối thiểu"]]
       .map(([k, t]) => `<button data-f="${k}" class="${S.filter === k ? "on" : ""}">${t}</button>`).join("")}</div>
     <div id="res"></div>`;
   bindScan($("#main"));
@@ -323,22 +373,19 @@ function viewStock() {
   $("#clr").onclick = () => { S.q = ""; S.offset = 0; viewStock(); };
   $("#vgo").onclick = () => { S.viTri = $("#vt").value.trim().toUpperCase(); S.q = ""; S.offset = 0; loadStock(); };
   $("#vt").onkeydown = e => e.key === "Enter" && $("#vgo").click();
-  $$(".filters button").forEach(b => b.onclick = () => { S.filter = b.dataset.f; S.offset = 0; viewStock(); });
+  $$(".seg button").forEach(b => b.onclick = () => { S.filter = b.dataset.f; S.offset = 0; viewStock(); });
   loadStock();
 }
-
 function pickerStock() {
-  const q = S.q.toLowerCase();
-  const picks = quickPicks(S.items, ["ma", "ten"], q, 8);
-  $("#res").innerHTML = `<div class="mut" style="margin:8px 2px">Gợi ý mã hàng</div>` +
-    picks.map(i => `<div class="card" data-ma="${esc(i.ma)}" style="padding:11px">
-      <div class="row"><div><h3>${esc(i.ma)}</h3><div class="mut">${esc(i.ten || "")}</div></div>
-      <span class="chip fit">${esc(i.dvt || "")}</span></div></div>`).join("") +
+  const picks = quickPicks(S.items, ["ma", "ten"], S.q.toLowerCase(), 8);
+  $("#res").innerHTML = `<div class="pick-hd">Gợi ý mã hàng</div>` +
+    picks.map(i => `<div class="card" data-ma="${esc(i.ma)}" style="padding:12px;margin:8px 0"><div class="row"><div>
+      <h3 class="code">${esc(i.ma)}</h3><div class="mut">${esc(i.ten || "")}</div></div>
+      <span class="chip gray fit">${esc(i.dvt || "")}</span></div></div>`).join("") +
     `<div class="more"><button id="showall">Xem tất cả kết quả ↦</button></div>`;
   $$("#res .card").forEach(c => c.onclick = () => { S.q = c.dataset.ma; viewStock(); });
-  $("#showall").onclick = () => { S.q = S.q; loadStock(); };
+  $("#showall").onclick = loadStock;
 }
-
 async function loadStock(append) {
   const res = $("#res"); if (!res) return;
   if (S.loading) return; S.loading = true;
@@ -365,75 +412,60 @@ async function loadStock(append) {
       sums = await must(qq);
       if (S.filter === "min") sums = sums.filter(s => s.tong < s.ton_toi_thieu);
     }
-    if (!sums.length) { if (!append) res.innerHTML = `<div class="empty">Không có kết quả.</div>`; S.hasMore = false; S.loading = false; return; }
+    if (!sums.length) { if (!append) res.innerHTML = `<div class="empty">Không có kết quả.</div>`; S.loading = false; return; }
     S.sums = append ? S.sums.concat(sums) : sums;
     const lots = await must(sb.from("v_stock").select("*").in("ma_hang", sums.map(s => s.ma)).order("hsd").order("vi_tri"));
     lots.forEach(l => (S.by[l.ma_hang] ||= []).push(l));
     const html = sums.map(s => stockCard(s, S.by[s.ma] || [])).join("");
-    const more = (S.filter !== "exp" && !S.viTri) ? `<div class="more"><button id="more">Tải thêm</button></div>` : "";
     if (append) res.insertAdjacentHTML("beforeend", html); else res.innerHTML = html;
     let mEl = $("#more");
-    if (!more) { if (mEl) mEl.remove(); }
-    else if (!mEl) res.insertAdjacentHTML("beforeend", more);
-    S.hasMore = sums.length >= PAGE;
-    $("#more") && ($("#more").style.display = S.hasMore ? "block" : "none");
-    $("#more") && ($("#more").onclick = () => { S.offset += PAGE; loadStock(true); });
+    const canMore = (S.filter !== "exp" && !S.viTri && !q) && sums.length >= PAGE;
+    if (!mEl) res.insertAdjacentHTML("beforeend", `<div class="more"><button id="more" style="display:none">Tải thêm</button></div>`);
+    $("#more").style.display = canMore ? "block" : "none";
+    $("#more").onclick = () => { S.offset += PAGE; loadStock(true); };
     res.querySelectorAll("[data-act]").forEach(b => b.onclick = () => {
-      const lot = lots.find(l => String(l.id) === b.dataset.id);
-      if (!lot) return;
+      const lot = lots.find(l => String(l.id) === b.dataset.id); if (!lot) return;
       b.dataset.act === "xuat" ? sheetIssue(lot) : sheetMove(lot);
     });
-    bindXuatMa(res, lots);
   } catch (e) { if (!append) res.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   S.loading = false;
 }
-
 function hsdChip(hsd) {
-  if (!hsd) return "";
+  if (!hsd) return `<span class="chip gray">Không HSD</span>`;
   const d = Math.floor((new Date(hsd + "T00:00:00") - new Date(today() + "T00:00:00")) / 864e5);
   if (d < 0) return `<span class="chip bad">Hết hạn ${esc(hsd)}</span>`;
-  if (d <= S.warnDays) return `<span class="chip warn">HSD ${esc(hsd)} (${d}n)</span>`;
-  if (d <= S.chuyDays) return `<span class="chip">HSD ${esc(hsd)} (${d}n)</span>`;
-  return `<span class="chip">HSD ${esc(hsd)}</span>`;
+  if (d <= S.warnDays) return `<span class="chip warn">HSD ${esc(hsd)} · ${d}n</span>`;
+  if (d <= S.chuyDays) return `<span class="chip">HSD ${esc(hsd)} · ${d}n</span>`;
+  return `<span class="chip gray">HSD ${esc(hsd)}</span>`;
 }
-function addDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); }
 function stockCard(s, lots) {
   const low = s.ton_toi_thieu > 0 && s.tong < s.ton_toi_thieu;
-  const sum = lots.reduce((a, l) => a + Number(l.sl), 0);
-  return `<div class="card"><div class="row"><div><h3>${esc(s.ma)}</h3><div class="mut">${esc(s.ten)}</div></div>
-    <div class="fit tot">${fmt(s.tong)} <span class="mut">${esc(s.dvt)}</span></div></div>
-    ${low ? `<span class="chip bad">Dưới tối thiểu ${fmt(s.ton_toi_thieu)}</span>` : ""}
-    ${sum > 0 ? `<button class="btn alt sm" style="width:100%;margin-top:8px" data-xuatma="${esc(s.ma)}">📤 Xuất mặt hàng này</button>` : ""}
-    ${lots.map(l => `<div class="lot"><div class="info"><div class="vt">${esc(l.vi_tri || "—")} · ${fmt(l.sl)}</div>
-      <div class="mut">${l.lo ? "Lô " + esc(l.lo) + " · " : ""}${hsdChip(l.hsd)}</div></div>
-      <button class="btn alt sm fit" data-act="chuyen" data-id="${l.id}">Chuyển</button>
+  return `<div class="card"><div class="row"><div><h3 class="code">${esc(s.ma)}</h3>
+    <div class="mut">${esc(s.ten)}</div></div><div class="fit tot">${fmt(s.tong)} <span class="mut" style="font-size:12px">${esc(s.dvt)}</span></div></div>
+    ${low ? `<div style="margin-top:6px"><span class="chip bad">Dưới tối thiểu ${fmt(s.ton_toi_thieu)}</span></div>` : ""}
+    ${lots.map(l => `<div class="lot"><div class="info"><div class="vt code">${esc(l.vi_tri || "—")}</div>
+      <div class="mut">${fmt(l.sl)} ${esc(l.dvt || s.dvt || "")}${l.lo ? " · lô " + esc(l.lo) : ""} ${hsdChip(l.hsd)}</div></div>
+      <button class="btn ghost sm fit" data-act="chuyen" data-id="${l.id}">Chuyển</button>
       <button class="btn sm fit" data-act="xuat" data-id="${l.id}">Xuất</button></div>`).join("")}
     ${lots.length ? "" : `<div class="mut" style="margin-top:6px">Chưa có tồn.</div>`}</div>`;
 }
-function bindXuatMa(root, lots) {
-  root.querySelectorAll("[data-xuatma]").forEach(b => b.onclick = () => {
-    const all = lots.filter(l => l.ma_hang === b.dataset.xuatma && Number(l.sl) > 0);
-    sheetIssueFree(b.dataset.xuatma, all);
-  });
-}
-
-// ------------------------------------------------------------------ Xuất/Chuyển 1 dòng tồn (giữ vị trí cụ thể)
 async function submitVoucher(btn, loai, doiTac, ghiChu, lines, done) {
   busy(btn, true, "Đang ghi sổ…");
   try {
     const so = await rpc("quick_voucher", { p_loai: loai, p_doi_tac: doiTac || "", p_ghi_chu: ghiChu || "", p_lines: lines });
-    toast(`Đã ghi sổ ${so}`); vibrate(20); done && done(so);
-  } catch (e) { toast(e.message, true); busy(btn, false); }
+    toast(`Đã ghi sổ ${so}`); vibrate(20); done && done(so); return so;
+  } catch (e) { toast(e.message, true); busy(btn, false); return null; }
 }
 function lotHead(l) {
-  return `<h3>${esc(l.ma_hang)} · ${esc(l.ten || "")}</h3><div class="mut">${esc(l.vi_tri)} · tồn ${fmt(l.sl)} ${esc(l.dvt || "")}${l.lo ? " · lô " + esc(l.lo) : ""} ${hsdChip(l.hsd)}</div>`;
+  return `<h3 class="code">${esc(l.ma_hang)}</h3><div class="mut" style="margin-bottom:6px">${esc(l.ten || "")}</div>
+    <div class="stat"><div><span>Đang có</span><b>${fmt(l.sl)} ${esc(l.dvt || "")}</b></div>
+    <div><span>Vị trí</span><b class="code">${esc(l.vi_tri)}</b></div>
+    <div><span>Hạn dùng</span><b>${esc(l.hsd || "—")}</b></div></div>`;
 }
-function datalistCust() { return `<datalist id="dl-custs">${S.custs.map(c => `<option value="${esc(c.ten || c.ma)}"></option>`).join("")}</datalist>`; }
-function datalistLoc() { return `<datalist id="dl-locs">${S.locs.map(l => `<option value="${esc(l.ma)}"></option>`).join("")}</datalist>`; }
-
 function sheetIssue(l) {
-  sheet(`${lotHead(l)}<label>Số lượng xuất (tối đa ${fmt(l.sl)})</label><input id="sl" type="number" inputmode="decimal" enterkeyhint="done" value="${l.sl}">
-    <label>Nơi nhận / khách hàng</label><input id="dt" list="dl-custs" enterkeyhint="done">${datalistCust()}
+  sheet(`${lotHead(l)}<label>Số lượng xuất (tối đa ${fmt(l.sl)})</label>
+    <input id="sl" type="number" inputmode="decimal" enterkeyhint="done" value="${l.sl}">
+    <label>Nơi nhận / khách hàng</label><input id="dt" list="dl-custs" enterkeyhint="done">${dlCust()}
     <label>Ghi chú</label><input id="gc" enterkeyhint="done">
     <p><button class="btn" id="ok" style="width:100%">Xuất kho</button></p>`, (el, close) => {
     const inp = $("#sl", el); inp.focus(); inp.select && inp.select();
@@ -442,12 +474,13 @@ function sheetIssue(l) {
       if (!(sl > 0) || sl > l.sl) return toast(`Số lượng phải trong khoảng 0 – ${fmt(l.sl)}.`, true);
       submitVoucher($("#ok", el), "XUAT", $("#dt", el).value, $("#gc", el).value,
         [{ ma_hang: l.ma_hang, lo: l.lo, nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl }],
-        () => { close(); loadStock(); });
+        so => { close(); openPick(so); });
     };
   });
 }
 function sheetMove(l) {
-  sheet(`${lotHead(l)}<label>Vị trí đến (khác vị trí hiện tại)</label><div class="row"><input id="den" list="dl-locs" autocapitalize="characters" enterkeyhint="done">${scanBtn("den")}</div>${datalistLoc()}
+  sheet(`${lotHead(l)}<label>Vị trí đến (khác vị trí hiện tại)</label>
+    <div class="row"><input id="den" list="dl-locs" autocapitalize="characters" enterkeyhint="done">${scanBtn("den")}</div>${dlLoc()}
     <label>Số lượng chuyển (tối đa ${fmt(l.sl)})</label><input id="sl" type="number" inputmode="decimal" value="${l.sl}" enterkeyhint="done">
     <label>Ghi chú</label><input id="gc" enterkeyhint="done">
     <p><button class="btn" id="ok" style="width:100%">Chuyển vị trí</button></p>`, (el, close) => {
@@ -462,65 +495,152 @@ function sheetMove(l) {
     };
   });
 }
-// Xuất 1 mặt hàng: mặc định để hệ thống tự phân bổ FIFO (gọn nhất), hoặc chọn lô thủ công
-function sheetIssueFree(ma, lots) {
-  const it = itemView(ma);
-  const opt = lots.map((l, i) => `<option value="${i}">${esc(l.vi_tri)} · ${fmt(l.sl)} · ${l.lo ? "lô " + esc(l.lo) + " · " : ""}${l.hsd ? "HSD " + esc(l.hsd) : "không HSD"}</option>`).join("");
-  sheet(`<h3>${esc(ma)} · ${esc(it?.ten || "")}</h3>
-    <div class="mut">Nguyên tắc xuất: <b>${esc(S.xuatRule)}</b> (bỏ hàng hết hạn). Để tự phân bổ theo lô, chọn “Tự động”.</div>
-    <label>Lấy hàng từ</label>
-    <select id="lotpick"><option value="auto">Tự động (${esc(S.xuatRule)}) — an toàn nhất</option>${opt}</select>
-    <label>Số lượng xuất</label><input id="sl" type="number" inputmode="decimal" enterkeyhint="done">
-    <label>Nơi nhận / khách hàng</label><input id="dt" list="dl-custs" enterkeyhint="done">${datalistCust()}
-    <label>Ghi chú</label><input id="gc" enterkeyhint="done">
-    <p><button class="btn" id="ok" style="width:100%">Xuất kho</button></p>`, (el, close) => {
-    const total = lots.reduce((a, l) => a + Number(l.sl), 0);
-    const sync = () => {
-      const v = $("#lotpick", el).value;
-      const max = v === "auto" ? total : Number(lots[Number(v)].sl);
-      $("#sl", el).value = max; $("#sl", el).max = max;
-      $("#sl", el).placeholder = "tối đa " + fmt(max);
-    };
-    $("#lotpick", el).onchange = sync; sync();
-    $("#sl", el).focus();
-    $("#ok", el).onclick = () => {
-      const sl = Number($("#sl", el).value); const v = $("#lotpick", el).value;
-      if (!(sl > 0)) return toast("Nhập số lượng > 0.", true);
-      let line;
-      if (v === "auto") line = { ma_hang: ma, sl };                 // để server tự phân bổ FIFO
-      else { const l = lots[Number(v)]; if (sl > Number(l.sl)) return toast(`Lô này chỉ còn ${fmt(l.sl)}.`, true);
-        line = { ma_hang: ma, lo: l.lo, nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl }; }
-      submitVoucher($("#ok", el), "XUAT", $("#dt", el).value, $("#gc", el).value, [line],
-        () => { close(); loadStock(); });
-    };
-  });
+
+// ------------------------------------------------------------------ PHÂN BỔ LÔ (FIFO/FEFO/LIFO) — giống app PC
+function lotCmp(rule) {
+  return (a, b) => {
+    const hsA = a.hsd || "9999-12-31", hsB = b.hsd || "9999-12-31";
+    const nnA = a.ngay_nhap || "9999-12-31", nnB = b.ngay_nhap || "9999-12-31";
+    if (rule === "FEFO") return hsA.localeCompare(hsB) || nnA.localeCompare(nnB) || (a.id - b.id);
+    if (rule === "LIFO") return nnB.localeCompare(nnA) || (b.id - a.id);
+    return nnA.localeCompare(nnB) || hsA.localeCompare(hsB) || (a.id - b.id);
+  };
+}
+async function allocateOrder(lines) {
+  const codes = [...new Set(lines.map(l => l.ma_hang))];
+  const lots = await must(sb.from("v_stock").select("*").in("ma_hang", codes).gt("sl", 0));
+  const by = {}; lots.forEach(l => (by[l.ma_hang] ||= []).push(l));
+  const cmp = lotCmp(S.xuatRule);
+  const out = [], thieu = [];
+  for (const ln of lines) {
+    let need = Number(ln.sl);
+    const avail = (by[ln.ma_hang] || []).filter(l => !(l.hsd && l.hsd < today())).sort(cmp);
+    const picks = [];
+    for (const l of avail) {
+      if (need <= 1e-9) break;
+      const take = Math.min(Number(l.sl), need);
+      picks.push({ ...l, take }); need -= take;
+    }
+    out.push({ ma_hang: ln.ma_hang, ten: (itemView(ln.ma_hang) || {}).ten, need: Number(ln.sl), picks, thieu: Math.max(0, need) });
+    if (need > 1e-9) thieu.push({ ma_hang: ln.ma_hang, thieu: need });
+  }
+  return { out, thieu };
+}
+function allocToLines(out) {
+  const lines = [];
+  out.forEach(o => o.picks.forEach(p => lines.push({ ma_hang: o.ma_hang, lo: p.lo, nsx: p.nsx, hsd: p.hsd, vi_tri: p.vi_tri, sl: p.take })));
+  return lines;
 }
 
-// ------------------------------------------------------------------ TAB: Nhập kho (nhiều dòng → 1 phiếu)
-function viewReceive() {
-  $("#title").textContent = "Nhập kho";
-  $("#main").innerHTML = `<div class="card"><h3>Thêm dòng nhập</h3>
-    <label>Mã hàng <span class="req">*</span></label><div class="row"><input id="ma" autocapitalize="characters" enterkeyhint="next" placeholder="Quét / gõ mã">${scanBtn("ma")}</div>
-    <div id="ten" class="mut" style="margin-top:4px"></div>
-    <div id="picks"></div>
-    <label>Số lượng <span class="req">*</span></label><input id="sl" type="number" inputmode="decimal" enterkeyhint="next">
-    <div class="grid3"><div><label>Nhà cung cấp</label><input id="nsx" enterkeyhint="next"></div>
-      <div><label>Số lô</label><input id="lo" enterkeyhint="next"></div>
-      <div><label>HSD</label><input id="hsd" type="date"></div></div>
-    <label>Vị trí (để trống = chưa xếp vào CHUA-XEP)</label><div class="row"><input id="vt" list="dl-locs" autocapitalize="characters" enterkeyhint="done">${scanBtn("vt")}</div>${datalistLoc()}
-    <p><button class="btn alt" id="add" style="width:100%">＋ Thêm vào phiếu</button></p></div>
-    <div id="draft"></div>`;
+// ------------------------------------------------------------------ TAB: Xuất hàng
+function viewIssue() {
+  $("#title").textContent = "Xuất hàng"; $("#sub").textContent = `Nguyên tắc: ${ruleName[S.xuatRule] || S.xuatRule}`;
+  $("#main").innerHTML = `${dlItem()}${dlCust()}
+    <div class="card"><div class="head"><h3>📤 Phiếu xuất hàng</h3></div>
+      <label>Nơi nhận / khách hàng <span class="req">*</span></label>
+      <input id="dt" list="dl-custs" placeholder="Chọn hoặc gõ tên khách / nơi nhận" enterkeyhint="next">
+      <label>Thêm mặt hàng cần xuất</label>
+      <div class="row"><input id="ma" list="dl-items" autocapitalize="characters" placeholder="Quét / gõ mã hàng" enterkeyhint="next">${scanBtn("ma")}</div>
+      <div id="tip" class="mut" style="margin-top:5px;min-height:18px"></div>
+      <div id="picksh"></div>
+      <div class="row" style="margin-top:2px"><input id="sl" type="number" inputmode="decimal" placeholder="Số lượng" enterkeyhint="done"><button class="btn fit" id="add" style="min-width:56px">＋</button></div>
+      <div id="order"></div>
+    </div>
+    <p class="hintline">Hệ thống tự phân bổ lô theo <b>${esc(S.xuatRule)}</b> (bỏ hàng hết hạn). Bấm <b>Xem &amp; xuất kho</b> để thấy lấy ở đâu, số lượng bao nhiêu rồi mới ghi sổ.</p>`;
   bindScan($("#main"));
   $("#ma").oninput = e => {
     const v = e.target.value.trim().toUpperCase();
     const it = itemView(v);
+    $("#tip").textContent = v ? (it ? `${it.ten} (${it.dvt || ""})` : "Mã chưa có trong danh mục — kiểm tra lại.") : "";
+    const pk = quickPicks(S.items, ["ma", "ten"], v.toLowerCase(), 6);
+    $("#picksh").innerHTML = (v && !it && pk.length) ? `<div class="picks">${pk.map(p => `<button type="button" data-pick="${esc(p.ma)}">${esc(p.ma)}</button>`).join("")}</div>` : "";
+    $$("#picksh [data-pick]").forEach(b => b.onclick = () => { $("#ma").value = b.dataset.pick; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
+  };
+  $("#add").onclick = addOrderLine;
+  $("#sl").onkeydown = e => e.key === "Enter" && addOrderLine();
+  renderOrder();
+}
+function addOrderLine() {
+  const ma = $("#ma").value.trim().toUpperCase(), sl = Number($("#sl").value);
+  if (!itemView(ma)) return toast("Mã hàng chưa có trong danh mục.", true);
+  if (!(sl > 0)) return toast("Nhập số lượng > 0.", true);
+  const ex = S.order.find(l => l.ma_hang === ma);
+  if (ex) ex.sl += sl; else S.order.push({ ma_hang: ma, sl });
+  vibrate(15);
+  $("#ma").value = ""; $("#sl").value = ""; $("#tip").textContent = ""; $("#picksh").innerHTML = "";
+  renderOrder(); toast("Đã thêm vào phiếu."); $("#ma").focus();
+}
+function renderOrder() {
+  const d = $("#order"); if (!d) return;
+  if (!S.order.length) { d.innerHTML = ""; return; }
+  const total = S.order.reduce((a, l) => a + Number(l.sl), 0);
+  d.innerHTML = `<div class="section" style="margin:14px 2px 4px">Hàng cần xuất · ${S.order.length} mặt hàng · ${fmt(total)}</div>
+    ${S.order.map((l, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(l.ma_hang)} · ${fmt(l.sl)}</div>
+      <div class="mut">${esc((itemView(l.ma_hang) || {}).ten || "")}</div></div>
+      <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
+    <div class="grid2" style="margin-top:12px">
+      <button class="btn ghost" id="clr-o">Xóa hết</button>
+      <button class="btn" id="go-o">📋 Xem &amp; xuất kho</button></div>`;
+  $$("#order [data-del]").forEach(b => b.onclick = () => { S.order.splice(Number(b.dataset.del), 1); renderOrder(); });
+  $("#clr-o").onclick = () => { S.order = []; renderOrder(); };
+  $("#go-o").onclick = reviewOrder;
+}
+async function reviewOrder() {
+  const dt = $("#dt").value.trim();
+  if (!S.order.length) return toast("Chưa có mặt hàng nào.", true);
+  const btn = $("#go-o"); busy(btn, true, "Đang tính…");
+  let alloc;
+  try { alloc = await allocateOrder(S.order); }
+  catch (e) { toast(e.message, true); busy(btn, false); return; }
+  busy(btn, false);
+  if (alloc.thieu.length) {
+    return toast("Không đủ tồn khả dụng: " + alloc.thieu.map(t => `${t.ma_hang} thiếu ${fmt(t.thieu)}`).join(", "), true);
+  }
+  const totalLines = alloc.out.reduce((a, o) => a + o.picks.length, 0);
+  const vts = new Set(); alloc.out.forEach(o => o.picks.forEach(p => vts.add(p.vi_tri)));
+  sheet(`<h3>📋 Phiếu lấy hàng</h3>
+    <div class="mut" style="margin:2px 0 8px">${dt ? "Khách / nơi nhận: <b>" + esc(dt) + "</b>" : "<i>Chưa ghi nơi nhận</i>"}</div>
+    <div class="stat"><div><span>Mặt hàng</span><b>${alloc.out.length}</b></div>
+      <div><span>Dòng lấy</span><b>${totalLines}</b></div><div><span>Vị trí</span><b>${vts.size}</b></div></div>
+    ${alloc.out.map(o => `<div class="card" style="box-shadow:none;margin:10px 0 0">
+      <div class="row"><h3 class="code">${esc(o.ma_hang)} · ${fmt(o.need)}</h3></div>
+      <div class="mut" style="margin-bottom:2px">${esc(o.ten || "")}</div>
+      ${o.picks.map(p => `<div class="lot"><div class="info"><span class="loc">📍 ${esc(p.vi_tri)}</span>
+        <div class="mut">Lấy <b>${fmt(p.take)}</b>${p.lo ? " · lô " + esc(p.lo) : ""} ${p.hsd ? "· HSD " + esc(p.hsd) : ""}${p.ngay_nhap ? " · nhập " + esc(p.ngay_nhap) : ""}</div>
+      </div></div>`).join("")}
+    </div>`).join("")}
+    <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu xuất</button></p>`, (el, close) => {
+    $("#post", el).onclick = () => {
+      const lines = allocToLines(alloc.out);
+      submitVoucher($("#post", el), "XUAT", dt, "", lines, so => { close(); S.order = []; renderOrder(); openPick(so); });
+    };
+  });
+}
+
+// ------------------------------------------------------------------ TAB: Nhập kho
+function viewReceive() {
+  $("#title").textContent = "Nhập kho"; $("#sub").textContent = "Nhiều dòng trong 1 phiếu";
+  $("#main").innerHTML = `${dlItem()}${dlLoc()}
+    <div class="card"><div class="head"><h3>📥 Thêm dòng nhập</h3></div>
+    <label>Mã hàng <span class="req">*</span></label>
+    <div class="row"><input id="ma" autocapitalize="characters" enterkeyhint="next" placeholder="Quét / gõ mã">${scanBtn("ma")}</div>
+    <div id="ten" class="mut" style="margin-top:5px"></div><div id="picks"></div>
+    <label>Số lượng <span class="req">*</span></label><input id="sl" type="number" inputmode="decimal" enterkeyhint="next">
+    <div class="grid3"><div><label>NCC</label><input id="nsx" enterkeyhint="next"></div>
+      <div><label>Số lô</label><input id="lo" enterkeyhint="next"></div>
+      <div><label>HSD</label><input id="hsd" type="date"></div></div>
+    <label>Vị trí (trống = chưa xếp)</label><div class="row"><input id="vt" list="dl-locs" autocapitalize="characters" enterkeyhint="done">${scanBtn("vt")}</div>
+    <p style="margin-top:14px"><button class="btn alt" id="add" style="width:100%">＋ Thêm vào phiếu</button></p></div>
+    <div id="draft"></div>`;
+  bindScan($("#main"));
+  $("#ma").oninput = e => {
+    const v = e.target.value.trim().toUpperCase(); const it = itemView(v);
     $("#ten").textContent = it ? `${it.ten} (${it.dvt || ""})` : "";
-    const picks = quickPicks(S.items, ["ma", "ten"], v.toLowerCase(), 6);
-    $("#picks").innerHTML = (v && !it && picks.length) ? `<div class="hintline">Chọn nhanh:</div><div class="filters">${picks.map(p => `<button data-pick="${esc(p.ma)}">${esc(p.ma)}</button>`).join("")}</div>` : (v && !it ? `<div class="hintline">Mã chưa có trong danh mục — kiểm tra lại.</div>` : "");
+    const pk = quickPicks(S.items, ["ma", "ten"], v.toLowerCase(), 6);
+    $("#picks").innerHTML = (v && !it && pk.length) ? `<div class="picks">${pk.map(p => `<button type="button" data-pick="${esc(p.ma)}">${esc(p.ma)}</button>`).join("")}</div>` : (v && !it ? `<div class="hintline">Mã chưa có trong danh mục — kiểm tra lại.</div>` : "");
     $$("#picks [data-pick]").forEach(b => b.onclick = () => { $("#ma").value = b.dataset.pick; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
   };
-  $("#add").onclick = addDraft;
-  renderDraft();
+  $("#add").onclick = addDraft; renderDraft();
 }
 function addDraft() {
   const ma = $("#ma").value.trim().toUpperCase(), sl = Number($("#sl").value);
@@ -529,38 +649,36 @@ function addDraft() {
   S.draft.push({ ma_hang: ma, sl, nsx: $("#nsx").value.trim(), lo: $("#lo").value.trim(), hsd: $("#hsd").value, vi_tri: $("#vt").value.trim().toUpperCase() });
   vibrate(15);
   ["#ma", "#sl", "#nsx", "#lo", "#hsd", "#vt"].forEach(s => $(s).value = "");
-  $("#ten").textContent = ""; $("#picks").innerHTML = "";
-  renderDraft(); toast("Đã thêm dòng."); $("#ma").focus();
+  $("#ten").textContent = ""; $("#picks").innerHTML = ""; renderDraft(); toast("Đã thêm dòng."); $("#ma").focus();
 }
 function renderDraft() {
   const d = $("#draft"); if (!d) return;
   if (!S.draft.length) { d.innerHTML = ""; return; }
-  d.innerHTML = `<div class="card"><div class="row"><h3 style="flex:1">Phiếu nháp (${S.draft.length} dòng)</h3></div>
-    ${S.draft.map((l, i) => `<div class="lot"><div class="info"><div class="vt">${esc(l.ma_hang)} · ${fmt(l.sl)}</div>
-      <div class="mut">${esc(itemView(l.ma_hang)?.ten || "")}${l.lo ? " · lô " + esc(l.lo) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
+  d.innerHTML = `<div class="card"><div class="head"><h3>Phiếu nháp · ${S.draft.length} dòng</h3></div>
+    ${S.draft.map((l, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(l.ma_hang)} · ${fmt(l.sl)}</div>
+      <div class="mut">${esc((itemView(l.ma_hang) || {}).ten || "")}${l.lo ? " · lô " + esc(l.lo) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
     <label>Nhà cung cấp / ghi chú chung</label><input id="dg" enterkeyhint="done" placeholder="Tuỳ chọn">
-    <p><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu nhập</button></p></div>`;
+    <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu nhập</button></p></div>`;
   $$("#draft [data-del]").forEach(b => b.onclick = () => { S.draft.splice(Number(b.dataset.del), 1); renderDraft(); });
   $("#post").onclick = () => {
-    if (!S.draft.length) return;
     const lines = S.draft.map(l => ({ ma_hang: l.ma_hang, lo: l.lo, nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl: l.sl }));
     submitVoucher($("#post"), "NHAP", $("#dg").value, "", lines, () => { S.draft = []; viewReceive(); });
   };
 }
 
-// ------------------------------------------------------------------ TAB: Kiểm kê (nhiều vị trí → 1 phiếu KK)
+// ------------------------------------------------------------------ TAB: Kiểm kê
 function viewStocktake() {
-  $("#title").textContent = "Kiểm kê";
+  $("#title").textContent = "Kiểm kê"; $("#sub").textContent = "Nhiều vị trí trong 1 phiếu";
   const k = S.kk;
-  $("#main").innerHTML = `<div class="card"><div class="row"><h3 style="flex:1">Vị trí đang kiểm (${k.vts.length})</h3>
-    ${k.vts.length ? `<button class="btn alt sm fit" id="clear">Xoá</button>` : ""}</div>
+  $("#main").innerHTML = `${dlLoc()}
+    <div class="card"><div class="head"><h3>✅ Vị trí đang kiểm (${k.vts.length})</h3><div class="sp"></div>
+    ${k.vts.length ? `<button class="btn ghost sm fit" id="clear">Xoá</button>` : ""}</div>
     <label>Thêm vị trí</label>
     <div class="row"><input id="vt" list="dl-locs" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ vị trí">
-      <button class="btn alt fit" type="button" id="scanvt">📷</button>
-      <button class="btn fit" type="button" id="addvt">＋</button></div>${datalistLoc()}
-    <div id="vts" class="filters">${k.vts.map(v => `<button class="on">${esc(v)}</button>`).join("")}</div>
-    ${k.vts.length ? `<p><button class="btn alt" id="load" style="width:100%">⬇ Tải hàng của các vị trí này</button></p>` : ""}</div>
+      <button class="btn alt fit" type="button" id="scanvt">📷</button><button class="btn fit" type="button" id="addvt">＋</button></div>
+    <div class="filters">${k.vts.map(v => `<button class="on">${esc(v)}</button>`).join("")}</div>
+    ${k.vts.length ? `<p style="margin-top:12px"><button class="btn alt" id="load" style="width:100%">⬇ Tải hàng của các vị trí này</button></p>` : ""}</div>
     <div id="kk"></div>`;
   const addLoc = v => { v = (v || "").trim().toUpperCase(); if (!v) return; if (!k.vts.includes(v)) k.vts.push(v); $("#vt").value = ""; viewStocktake(); };
   $("#addvt").onclick = () => addLoc($("#vt").value);
@@ -576,10 +694,7 @@ async function loadKK() {
   try {
     const rows = await must(sb.from("v_stock").select("*").in("vi_tri", k.vts).order("vi_tri").order("ma_hang"));
     k.locs = {}; rows.forEach(r => (k.locs[r.vi_tri] ||= []).push(r));
-    // cảnh báo vị trí không có hàng
-    const none = k.vts.filter(v => !k.locs[v]);
-    k.confirmed = true;
-    renderKK();
+    const none = k.vts.filter(v => !k.locs[v]); k.confirmed = true; renderKK();
     if (none.length) toast(`Vị trí không có hàng: ${none.join(", ")}`);
   } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
@@ -587,24 +702,20 @@ function renderKK() {
   const k = S.kk, box = $("#kk"); if (!box) return;
   const vts = k.vts.filter(v => k.locs[v]);
   if (!vts.length) { box.innerHTML = `<div class="empty">Các vị trí này không có hàng trong sổ.</div>`; return; }
-  box.innerHTML = vts.map(vt => `<div class="card"><h3>📦 ${esc(vt)}</h3>
-    ${k.locs[vt].map((r, i) => `<div class="lot"><div class="info"><div class="vt">${esc(r.ma_hang)}</div>
+  box.innerHTML = vts.map(vt => `<div class="card"><div class="head"><h3 class="code">📦 ${esc(vt)}</h3></div>
+    ${k.locs[vt].map((r, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(r.ma_hang)}</div>
       <div class="mut">${esc(r.ten)}${r.lo ? " · lô " + esc(r.lo) : ""}${r.hsd ? " · HSD " + esc(r.hsd) : ""}</div></div>
       <div class="fit" style="text-align:right"><div class="mut">Sổ sách</div><b>${fmt(r.sl)}</b></div></div>
       <div class="row" style="margin:6px 0 2px"><input type="number" inputmode="decimal" data-vt="${esc(vt)}" data-i="${i}" placeholder="Thực tế (mặc định ${fmt(r.sl)})">
       <button class="btn alt sm fit" data-same data-vt="${esc(vt)}" data-i="${i}">= sổ</button></div>`).join("")}</div>`).join("") +
-    `<p><button class="btn" id="save" style="width:100%">✔ Ghi biên bản kiểm kê</button></p>`;
+    `<p style="margin-top:12px"><button class="btn" id="save" style="width:100%">✔ Ghi biên bản kiểm kê</button></p>`;
   const findInput = (vt, i) => $$("#kk input[data-i]").find(x => x.dataset.vt === vt && x.dataset.i === String(i));
-  $$("#kk [data-same]").forEach(b => b.onclick = () => {
-    const r = k.locs[b.dataset.vt][Number(b.dataset.i)];
-    const inp = findInput(b.dataset.vt, b.dataset.i); if (inp) inp.value = r.sl;
-  });
+  $$("#kk [data-same]").forEach(b => b.onclick = () => { const r = k.locs[b.dataset.vt][Number(b.dataset.i)]; const inp = findInput(b.dataset.vt, b.dataset.i); if (inp) inp.value = r.sl; });
   $("#save").onclick = () => {
     const lines = [];
     vts.forEach(vt => k.locs[vt].forEach((r, i) => {
-      const inp = findInput(vt, i);
-      const raw = inp ? inp.value.trim() : "";
-      const thucte = raw === "" ? Number(r.sl) : Number(raw);   // để trống = giữ nguyên sổ sách
+      const inp = findInput(vt, i); const raw = inp ? inp.value.trim() : "";
+      const thucte = raw === "" ? Number(r.sl) : Number(raw);
       lines.push({ ma_hang: r.ma_hang, lo: r.lo, nsx: r.nsx, hsd: r.hsd, vi_tri: r.vi_tri, sl_thuc_te: thucte });
     }));
     if (!lines.length) return toast("Chưa có dòng nào.", true);
@@ -612,14 +723,15 @@ function renderKK() {
   };
 }
 
-// ------------------------------------------------------------------ TAB: Phiếu
+// ------------------------------------------------------------------ TAB: Phiếu + phiếu lấy hàng
 const LOAI_NAME = { NHAP: "Nhập", XUAT: "Xuất", CHUYEN: "Chuyển", KK: "Kiểm kê", DOI: "Đổi hàng" };
+const LOAI_ICON = { NHAP: "📥", XUAT: "📤", CHUYEN: "🔀", KK: "✅", DOI: "🔄" };
 function viewVouchers() {
-  $("#title").textContent = "Phiếu gần đây";
-  $("#main").innerHTML = `<div class="filters">${[["all","Tất cả"],["XUAT","Xuất"],["NHAP","Nhập"],["CHUYEN","Chuyển"],["KK","Kiểm kê"]]
+  $("#title").textContent = "Phiếu"; $("#sub").textContent = "Bấm phiếu để xem chi tiết / lấy hàng";
+  $("#main").innerHTML = `<div class="seg">${[["all","Tất cả"],["XUAT","Xuất"],["NHAP","Nhập"],["CHUYEN","Chuyển"],["KK","Kiểm kê"]]
       .map(([k, t]) => `<button data-f="${k}" class="${S.vFilter === k ? "on" : ""}">${t}</button>`).join("")}</div>
     <div id="vs"></div>`;
-  $$(".filters button").forEach(b => b.onclick = () => { S.vFilter = b.dataset.f; S.vOffset = 0; viewVouchers(); });
+  $$(".seg button").forEach(b => b.onclick = () => { S.vFilter = b.dataset.f; S.vOffset = 0; viewVouchers(); });
   loadVouchers(false);
 }
 async function loadVouchers(append) {
@@ -629,11 +741,11 @@ async function loadVouchers(append) {
     let qq = sb.from("vouchers").select("*").order("created_at", { ascending: false }).range(S.vOffset, S.vOffset + 39);
     if (S.vFilter !== "all") qq = qq.eq("loai", S.vFilter);
     const vs = await must(qq);
-    const html = vs.map(v => `<div class="card" data-so="${esc(v.so)}" style="padding:11px"><div class="row"><div>
-      <h3>${esc(LOAI_NAME[v.loai] || v.loai)} · ${esc(v.so)}</h3>
+    const html = vs.map(v => `<div class="card" data-so="${esc(v.so)}" style="padding:12px"><div class="row"><div>
+      <h3>${LOAI_ICON[v.loai] || "🧾"} ${esc(LOAI_NAME[v.loai] || v.loai)} · <span class="code">${esc(v.so)}</span></h3>
       <div class="mut">${esc(v.ngay)} · ${esc(v.nguoi_lap || "")}</div>
       <div class="mut">${esc(v.doi_tac || v.ghi_chu || "")}</div></div>
-      <span class="chip ${v.trang_thai === "Đã ghi sổ" ? "" : "warn"} fit">${esc(v.trang_thai || "")}</span></div></div>`).join("");
+      <span class="chip ${v.trang_thai === "Đã ghi sổ" ? "ok" : "warn"} fit">${esc(v.trang_thai || "")}</span></div></div>`).join("");
     if (append) box.insertAdjacentHTML("beforeend", html); else box.innerHTML = html || `<div class="empty">Chưa có phiếu.</div>`;
     let mEl = $("#moreV");
     if (vs.length >= 40) {
@@ -644,39 +756,67 @@ async function loadVouchers(append) {
     if (!append) window.scrollTo(0, 0);
   } catch (e) { if (!append) box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
+const _pickState = {};   // đánh dấu "đã lấy" (chỉ trên máy, không lưu)
 async function voucherDetail(so) {
   try {
+    const [v] = await must(sb.from("vouchers").select("*").eq("so", so).limit(1));
     const lines = await must(sb.from("voucher_lines").select("*").eq("so", so).order("stt"));
-    sheet(`<h3>${esc(so)}</h3>${lines.map(l => `<div class="lot"><div class="info"><div class="vt">${esc(l.ma_hang)} · ${fmt(l.sl_thuc_te ?? l.sl)}</div>
-      <div class="mut">${esc(l.vi_tri)}${l.vi_tri_den ? " → " + esc(l.vi_tri_den) : ""}${l.lo ? " · lô " + esc(l.lo) : ""}${l.hsd ? " · " + esc(l.hsd) : ""}</div></div></div>`).join("") || `<div class="empty">Không có dòng.</div>`}
-      ${S.isAdmin ? `<p><button class="btn bad" id="undo" style="width:100%">Hủy phiếu (hoàn tồn)</button></p>` : ""}`,
-      (el, close) => {
-        const b = $("#undo", el);
-        if (b) b.onclick = async () => {
-          if (!confirm(`Hủy phiếu ${so} và hoàn lại tồn kho?`)) return;
-          busy(b, true, "Đang hủy…");
-          try { await rpc("undo_voucher", { p_so: so }); toast("Đã hủy phiếu."); close(); viewVouchers(); }
-          catch (e) { toast(e.message, true); busy(b, false); }
-        };
-      });
+    if (!v) { toast("Không tìm thấy phiếu.", true); return; }
+    renderPickSheet(v, lines);
   } catch (e) { toast(e.message, true); }
 }
-
-// -------------------------------------------------------------- PWA: cài đặt + offline
-let deferredInstall = null;
-window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault(); deferredInstall = e;
-  const b = $("#install"); if (b) b.style.display = "inline-block";
-});
-window.addEventListener("appinstalled", () => { deferredInstall = null; const b = $("#install"); if (b) b.style.display = "none"; });
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+function openPick(so) { voucherDetail(so); }
+function renderPickSheet(v, lines) {
+  const isXuat = v.loai === "XUAT";
+  // gom theo mã hàng, sắp xếp HSD thấp trước (date thấp xuất trước)
+  const groups = {};
+  lines.forEach(l => (groups[l.ma_hang] ||= []).push(l));
+  Object.values(groups).forEach(arr => arr.sort((a, b) => (a.hsd || "9999-12-31").localeCompare(b.hsd || "9999-12-31")));
+  const codes = Object.keys(groups);
+  const totalSl = lines.reduce((a, l) => a + Number(l.sl_thuc_te ?? l.sl ?? 0), 0);
+  const vts = [...new Set(lines.map(l => l.vi_tri).filter(Boolean))];
+  const st = _pickState[v.so] ||= {};
+  const head = `<h3>${LOAI_ICON[v.loai] || "🧾"} ${esc(LOAI_NAME[v.loai] || v.loai)} · <span class="code">${esc(v.so)}</span></h3>
+    <div class="mut" style="margin:2px 0 8px">${esc(v.ngay)} · ${esc(v.nguoi_lap || "")}${v.doi_tac ? " · " + esc(v.doi_tac) : ""}
+      ${v.trang_thai ? ' · <span class="chip ' + (v.trang_thai === "Đã ghi sổ" ? "ok" : "warn") + '">' + esc(v.trang_thai) + "</span>" : ""}</div>
+    <div class="stat"><div><span>Mặt hàng</span><b>${codes.length}</b></div>
+      <div><span>Tổng SL</span><b>${fmt(totalSl)}</b></div><div><span>Vị trí</span><b>${vts.length}</b></div></div>
+    ${isXuat ? `<div class="hintline" style="margin-top:8px">👉 Chạm từng dòng để đánh dấu <b>đã lấy</b>. Lấy theo thứ tự từ trên xuống (HSD thấp / nhập trước).</div>` : ""}`;
+  const body = codes.map(ma => `<div class="card" style="box-shadow:none;margin:10px 0 0">
+    <div class="row"><h3 class="code">${esc(ma)}</h3><div class="sp"></div><b class="qtypill">${fmt(groups[ma].reduce((a, l) => a + Number(l.sl_thuc_te ?? l.sl ?? 0), 0))}</b></div>
+    ${groups[ma].map((l, k) => {
+      const key = ma + "#" + k; const done = st[key] ? "done" : "";
+      const q = fmt(l.sl_thuc_te ?? l.sl);
+      return `<div class="pickrow ${done}" data-k="${esc(key)}"><div class="box">✓</div><div class="info">
+        ${l.vi_tri ? `<span class="loc">📍 ${esc(l.vi_tri)}</span>${l.vi_tri_den ? ` <span class="loc" style="background:var(--warnbg);color:var(--warn)">→ ${esc(l.vi_tri_den)}</span>` : ""}` : ""}
+        <div><b>${q}</b>${l.lo ? " · lô " + esc(l.lo) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.sl_so_sach != null && v.loai === "KK" ? " · sổ sách " + fmt(l.sl_so_sach) : ""}</div>
+      </div></div>`;
+    }).join("")}</div>`).join("");
+  sheet(head + body +
+    (S.isAdmin ? `<p style="margin-top:14px"><button class="btn bad" id="undo" style="width:100%">Hủy phiếu (hoàn tồn)</button></p>` : ""),
+    (el, close) => {
+      $$(".pickrow", el).forEach(row => row.onclick = () => { const k = row.dataset.k; st[k] = !st[k]; row.classList.toggle("done", !!st[k]); vibrate(10); });
+      const b = $("#undo", el);
+      if (b) b.onclick = async () => {
+        if (!confirm(`Hủy phiếu ${v.so} và hoàn lại tồn kho?`)) return;
+        busy(b, true, "Đang hủy…");
+        try { await rpc("undo_voucher", { p_so: v.so }); toast("Đã hủy phiếu."); close(); viewVouchers(); }
+        catch (e) { toast(e.message, true); busy(b, false); }
+      };
+    });
 }
 
-// -------------------------------------------------------------- lifecycle
-sb.auth.onAuthStateChange(ev => { if (ev === "SIGNED_OUT" && S._shelled) { S._shelled = false; renderLogin(); } });
+// -------------------------------------------------------------- PWA
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferredInstall = e; const b = $("#install"); if (b) b.style.display = "inline-block";
+});
+window.addEventListener("appinstalled", () => { deferredInstall = null; const b = $("#install"); if (b) b.style.display = "none"; });
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+
+sb.auth.onAuthStateChange(ev => { if (ev === "SIGNED_OUT" && S._shelled) { S._shelled = false; renderLogin(true); } });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && S._shelled) refreshRef(false); });
-boot().catch(e => { renderLogin(); toast(e.message, true); });
+boot().catch(e => { renderLogin(true); toast(e.message, true); });
 </script>
 </body>
 </html>

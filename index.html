@@ -120,12 +120,14 @@ font-size:22px;padding:8px;line-height:1}
 .picks button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font:600 13px inherit;color:var(--ink)}
 .pick-hd{font-size:12px;color:var(--mut);margin:10px 2px 0}
 .ipick{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.ipick button{display:flex;align-items:center;gap:10px;text-align:left;width:100%;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:11px 12px;font:inherit;color:var(--ink)}
+.ipick button{display:block;text-align:left;width:100%;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:var(--ink)}
 .ipick button:active{background:var(--tap)}
-.ipick .code{font-weight:700;white-space:nowrap;flex:none}
-.ipick .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
-.ipick .nm b{color:var(--pri)}
-.ipick .dv{color:var(--mut);font-size:12px;white-space:nowrap;flex:none}
+.ipick .r1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ipick .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;font-size:13.5px}
+.ipick .dv{color:var(--mut);font-size:12px;white-space:nowrap}
+.ipick .vn{display:block;margin-top:2px;font-weight:600;font-size:15px}
+.ipick .vn b,.ipick .code b{color:var(--pri)}
+.ipick .en{display:block;color:var(--mut);font-size:12px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .more{margin-top:8px;text-align:center}
 .more button{border:0;background:none;color:var(--pri);font:700 14px inherit;padding:10px}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
@@ -167,7 +169,7 @@ const today = () => new Date().toLocaleDateString("sv-SE");
 const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); };
 const debounce = (f, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 
-const APP_VER = "v2";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v3";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -208,18 +210,23 @@ const vibrate = p => navigator.vibrate && navigator.vibrate(p);
 function renderItemSuggest(box, raw, onPick) {
   const v = raw.trim(); const q = v.toLowerCase(); const it = itemView(v.toUpperCase());
   if (!q || it) { box.innerHTML = ""; return; }
-  const pk = quickPicks(S.items, ["ma", "ten"], q, 8);
+  const pk = quickPicks(S.items, ["ma", "ten", "ten_vn"], q, 8);
   if (!pk.length) { box.innerHTML = `<div class="hintline" style="margin-top:8px">Không tìm thấy mã / tên phù hợp — kiểm tra lại.</div>`; return; }
   box.innerHTML = `<div class="pick-hd">Chọn mặt hàng</div><div class="ipick">` +
-    pk.map(p => `<button type="button" data-pick="${esc(p.ma)}"><span class="code">${esc(p.ma)}</span><span class="nm">${hlTen(p.ten, q)}</span><span class="dv">${esc(p.dvt || "")}</span></button>`).join("") +
-    `</div>`;
+    pk.map(p => {
+      const vn = vnName(p), en = String(p.ten || "").trim();
+      return `<button type="button" data-pick="${esc(p.ma)}">
+        <span class="r1"><span class="code">${hlText(p.ma, q)}</span><span class="dv">${esc(p.dvt || "")}</span></span>
+        <span class="vn">${hlText(vn, q)}</span>
+        ${en && en !== vn ? `<span class="en">${esc(en)}</span>` : ""}</button>`;
+    }).join("") + `</div>`;
   box.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => onPick(b.dataset.pick));
 }
-function hlTen(ten, q) {
-  ten = String(ten || ""); if (!q) return esc(ten);
-  const i = ten.toLowerCase().indexOf(q);
-  if (i < 0) return esc(ten);
-  return esc(ten.slice(0, i)) + "<b>" + esc(ten.slice(i, i + q.length)) + "</b>" + esc(ten.slice(i + q.length));
+function hlText(s, q) {
+  s = String(s || ""); if (!q) return esc(s);
+  const i = s.toLowerCase().indexOf(q);
+  if (i < 0) return esc(s);
+  return esc(s.slice(0, i)) + "<b>" + esc(s.slice(i, i + q.length)) + "</b>" + esc(s.slice(i + q.length));
 }
 function withSearch(items, keys, q) {
   const f = items.filter(x => keys.some(k => String(x[k] || "").toLowerCase().includes(q)));
@@ -235,6 +242,8 @@ function quickPicks(items, keys, q, n = 6) {
   return (s.length ? s : withSearch(items, keys, q)).slice(0, n);
 }
 const itemView = ma => S.items.find(i => i.ma === ma);
+const vnName = o => ((o && (o.ten_vn || "").trim()) || (o && o.ten) || "");
+const nameOf = (ma, fb) => { const it = itemView(ma); return vnName(it) || fb || ""; };
 const ruleName = { FIFO: "FIFO · nhập trước xuất trước", FEFO: "FEFO · hạn dùng gần nhất trước", LIFO: "LIFO · nhập sau xuất trước" };
 
 // ------------------------------------------------------------------ đăng nhập / khởi động
@@ -257,7 +266,7 @@ const cachedMe = () => { try { return JSON.parse(localStorage.getItem(LS_ME) || 
 let _refAt = 0;
 async function loadRef() {
   const [items, locs, custs, setRows] = await Promise.all([
-    must(sb.from("items").select("ma,ten,dvt,ton_toi_thieu").order("ma")),
+    must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu").order("ma")),
     must(sb.from("locations").select("ma,loai,cha").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
     must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat"])),
@@ -402,10 +411,10 @@ function viewStock() {
   loadStock();
 }
 function pickerStock() {
-  const picks = quickPicks(S.items, ["ma", "ten"], S.q.toLowerCase(), 8);
+  const picks = quickPicks(S.items, ["ma", "ten", "ten_vn"], S.q.toLowerCase(), 8);
   $("#res").innerHTML = `<div class="pick-hd">Gợi ý mã hàng</div>` +
     picks.map(i => `<div class="card" data-ma="${esc(i.ma)}" style="padding:12px;margin:8px 0"><div class="row"><div>
-      <h3 class="code">${esc(i.ma)}</h3><div class="mut">${esc(i.ten || "")}</div></div>
+      <h3 class="code">${esc(i.ma)}</h3><div class="mut">${esc(vnName(i))}</div></div>
       <span class="chip gray fit">${esc(i.dvt || "")}</span></div></div>`).join("") +
     `<div class="more"><button id="showall">Xem tất cả kết quả ↦</button></div>`;
   $$("#res .card").forEach(c => c.onclick = () => { S.q = c.dataset.ma; viewStock(); });
@@ -482,7 +491,7 @@ async function submitVoucher(btn, loai, doiTac, ghiChu, lines, done) {
   } catch (e) { toast(e.message, true); busy(btn, false); return null; }
 }
 function lotHead(l) {
-  return `<h3 class="code">${esc(l.ma_hang)}</h3><div class="mut" style="margin-bottom:6px">${esc(l.ten || "")}</div>
+  return `<h3 class="code">${esc(l.ma_hang)}</h3><div class="mut" style="margin-bottom:6px">${esc(nameOf(l.ma_hang, l.ten))}</div>
     <div class="stat"><div><span>Đang có</span><b>${fmt(l.sl)} ${esc(l.dvt || "")}</b></div>
     <div><span>Vị trí</span><b class="code">${esc(l.vi_tri)}</b></div>
     <div><span>Hạn dùng</span><b>${esc(l.hsd || "—")}</b></div></div>`;
@@ -576,7 +585,7 @@ function viewIssue() {
   $("#ma").oninput = e => {
     const v = e.target.value.trim().toUpperCase();
     const it = itemView(v);
-    $("#tip").textContent = v ? (it ? `${it.ten} (${it.dvt || ""})` : "") : "";
+    $("#tip").textContent = v ? (it ? `${vnName(it)} (${it.dvt || ""})` : "") : "";
     renderItemSuggest($("#picksh"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
   };
   $("#add").onclick = addOrderLine;
@@ -599,7 +608,7 @@ function renderOrder() {
   const total = S.order.reduce((a, l) => a + Number(l.sl), 0);
   d.innerHTML = `<div class="section" style="margin:14px 2px 4px">Hàng cần xuất · ${S.order.length} mặt hàng · ${fmt(total)}</div>
     ${S.order.map((l, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(l.ma_hang)} · ${fmt(l.sl)}</div>
-      <div class="mut">${esc((itemView(l.ma_hang) || {}).ten || "")}</div></div>
+      <div class="mut">${esc(nameOf(l.ma_hang))}</div></div>
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
     <div class="grid2" style="margin-top:12px">
       <button class="btn ghost" id="clr-o">Xóa hết</button>
@@ -627,7 +636,7 @@ async function reviewOrder() {
       <div><span>Dòng lấy</span><b>${totalLines}</b></div><div><span>Vị trí</span><b>${vts.size}</b></div></div>
     ${alloc.out.map(o => `<div class="card" style="box-shadow:none;margin:10px 0 0">
       <div class="row"><h3 class="code">${esc(o.ma_hang)} · ${fmt(o.need)}</h3></div>
-      <div class="mut" style="margin-bottom:2px">${esc(o.ten || "")}</div>
+      <div class="mut" style="margin-bottom:2px">${esc(nameOf(o.ma_hang, o.ten))}</div>
       ${o.picks.map(p => `<div class="lot"><div class="info"><span class="loc">📍 ${esc(p.vi_tri)}</span>
         <div class="mut">Lấy <b>${fmt(p.take)}</b>${p.lo ? " · lô " + esc(p.lo) : ""} ${p.hsd ? "· HSD " + esc(p.hsd) : ""}${p.ngay_nhap ? " · nhập " + esc(p.ngay_nhap) : ""}</div>
       </div></div>`).join("")}
@@ -658,7 +667,7 @@ function viewReceive() {
   bindScan($("#main"));
   $("#ma").oninput = e => {
     const v = e.target.value.trim().toUpperCase(); const it = itemView(v);
-    $("#ten").textContent = it ? `${it.ten} (${it.dvt || ""})` : "";
+    $("#ten").textContent = it ? `${vnName(it)} (${it.dvt || ""})` : "";
     renderItemSuggest($("#picks"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
   };
   $("#add").onclick = addDraft; renderDraft();
@@ -677,7 +686,7 @@ function renderDraft() {
   if (!S.draft.length) { d.innerHTML = ""; return; }
   d.innerHTML = `<div class="card"><div class="head"><h3>Phiếu nháp · ${S.draft.length} dòng</h3></div>
     ${S.draft.map((l, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(l.ma_hang)} · ${fmt(l.sl)}</div>
-      <div class="mut">${esc((itemView(l.ma_hang) || {}).ten || "")}${l.lo ? " · lô " + esc(l.lo) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
+      <div class="mut">${esc(nameOf(l.ma_hang))}${l.lo ? " · lô " + esc(l.lo) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
     <label>Nhà cung cấp / ghi chú chung</label><input id="dg" enterkeyhint="done" placeholder="Tuỳ chọn">
     <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu nhập</button></p></div>`;
@@ -805,6 +814,7 @@ function renderPickSheet(v, lines) {
     ${isXuat ? `<div class="hintline" style="margin-top:8px">👉 Chạm từng dòng để đánh dấu <b>đã lấy</b>. Lấy theo thứ tự từ trên xuống (HSD thấp / nhập trước).</div>` : ""}`;
   const body = codes.map(ma => `<div class="card" style="box-shadow:none;margin:10px 0 0">
     <div class="row"><h3 class="code">${esc(ma)}</h3><div class="sp"></div><b class="qtypill">${fmt(groups[ma].reduce((a, l) => a + Number(l.sl_thuc_te ?? l.sl ?? 0), 0))}</b></div>
+    <div class="mut" style="margin-top:-4px">${esc(nameOf(ma))}</div>
     ${groups[ma].map((l, k) => {
       const key = ma + "#" + k; const done = st[key] ? "done" : "";
       const q = fmt(l.sl_thuc_te ?? l.sl);

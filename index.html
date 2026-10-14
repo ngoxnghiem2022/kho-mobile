@@ -185,7 +185,7 @@ document.addEventListener("input", e => {
   if (v !== t.value) t.value = v;
 }, true);
 
-const APP_VER = "v9";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v10";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -379,8 +379,9 @@ function renderQuickOpen(me) {
 function shell() {
   $("#app").innerHTML = `<header>
     <div class="brand"><b id="title">Kho</b><span id="sub"></span></div>
+    <span class="tb" id="verbadge" style="pointer-events:none;font-weight:700">${APP_VER}</span>
     <button class="tb" id="install" style="display:none" title="Cài đặt">⬇ Cài</button>
-    <button class="tb" id="ref" title="Làm mới">⟳</button>
+    <button class="tb" id="ref" title="Tải lại bản mới">⟳</button>
     <button class="tb" id="out">Thoát</button></header>
     <main id="main"></main>
     <nav>${TABS.map(([k, i, t]) => `<button data-t="${k}"><b>${i}</b>${t}</button>`).join("")}</nav>`;
@@ -395,7 +396,11 @@ function shell() {
     if (!confirm("Đăng xuất khỏi Kho Mobile?")) return;
     await sb.auth.signOut(); S.me = null; S.isAdmin = false; S._shelled = false; localStorage.removeItem(LS_ME); renderLogin(true);
   };
-  $("#ref").onclick = () => refreshCurrent(true);
+  // ⟳ = tải lại BẢN MỚI thật: gỡ service worker cũ + nạp lại trang kèm tham số phá cache
+  $("#ref").onclick = async () => {
+    try { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r => r.unregister())); } catch {}
+    const u = new URL(location.href); u.searchParams.set("r", Date.now()); location.replace(u.toString());
+  };
   $$("nav button").forEach(b => b.onclick = () => go(b.dataset.t));
   go(S.tab);
 }

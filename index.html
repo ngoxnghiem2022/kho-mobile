@@ -119,6 +119,13 @@ font-size:22px;padding:8px;line-height:1}
 .picks{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
 .picks button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font:600 13px inherit;color:var(--ink)}
 .pick-hd{font-size:12px;color:var(--mut);margin:10px 2px 0}
+.ipick{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.ipick button{display:flex;align-items:center;gap:10px;text-align:left;width:100%;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:11px 12px;font:inherit;color:var(--ink)}
+.ipick button:active{background:var(--tap)}
+.ipick .code{font-weight:700;white-space:nowrap;flex:none}
+.ipick .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.ipick .nm b{color:var(--pri)}
+.ipick .dv{color:var(--mut);font-size:12px;white-space:nowrap;flex:none}
 .more{margin-top:8px;text-align:center}
 .more button{border:0;background:none;color:var(--pri);font:700 14px inherit;padding:10px}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
@@ -197,6 +204,22 @@ function busy(btn, on, label) {
   else if (btn.dataset.txt) { btn.disabled = false; btn.innerHTML = btn.dataset.txt; }
 }
 const vibrate = p => navigator.vibrate && navigator.vibrate(p);
+function renderItemSuggest(box, raw, onPick) {
+  const v = raw.trim(); const q = v.toLowerCase(); const it = itemView(v.toUpperCase());
+  if (!q || it) { box.innerHTML = ""; return; }
+  const pk = quickPicks(S.items, ["ma", "ten"], q, 8);
+  if (!pk.length) { box.innerHTML = `<div class="hintline" style="margin-top:8px">Không tìm thấy mã / tên phù hợp — kiểm tra lại.</div>`; return; }
+  box.innerHTML = `<div class="pick-hd">Chọn mặt hàng</div><div class="ipick">` +
+    pk.map(p => `<button type="button" data-pick="${esc(p.ma)}"><span class="code">${esc(p.ma)}</span><span class="nm">${hlTen(p.ten, q)}</span><span class="dv">${esc(p.dvt || "")}</span></button>`).join("") +
+    `</div>`;
+  box.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => onPick(b.dataset.pick));
+}
+function hlTen(ten, q) {
+  ten = String(ten || ""); if (!q) return esc(ten);
+  const i = ten.toLowerCase().indexOf(q);
+  if (i < 0) return esc(ten);
+  return esc(ten.slice(0, i)) + "<b>" + esc(ten.slice(i, i + q.length)) + "</b>" + esc(ten.slice(i + q.length));
+}
 function withSearch(items, keys, q) {
   const f = items.filter(x => keys.some(k => String(x[k] || "").toLowerCase().includes(q)));
   f.sort((a, b) => {
@@ -551,10 +574,8 @@ function viewIssue() {
   $("#ma").oninput = e => {
     const v = e.target.value.trim().toUpperCase();
     const it = itemView(v);
-    $("#tip").textContent = v ? (it ? `${it.ten} (${it.dvt || ""})` : "Mã chưa có trong danh mục — kiểm tra lại.") : "";
-    const pk = quickPicks(S.items, ["ma", "ten"], v.toLowerCase(), 6);
-    $("#picksh").innerHTML = (v && !it && pk.length) ? `<div class="picks">${pk.map(p => `<button type="button" data-pick="${esc(p.ma)}">${esc(p.ma)}</button>`).join("")}</div>` : "";
-    $$("#picksh [data-pick]").forEach(b => b.onclick = () => { $("#ma").value = b.dataset.pick; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
+    $("#tip").textContent = v ? (it ? `${it.ten} (${it.dvt || ""})` : "") : "";
+    renderItemSuggest($("#picksh"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
   };
   $("#add").onclick = addOrderLine;
   $("#sl").onkeydown = e => e.key === "Enter" && addOrderLine();
@@ -636,9 +657,7 @@ function viewReceive() {
   $("#ma").oninput = e => {
     const v = e.target.value.trim().toUpperCase(); const it = itemView(v);
     $("#ten").textContent = it ? `${it.ten} (${it.dvt || ""})` : "";
-    const pk = quickPicks(S.items, ["ma", "ten"], v.toLowerCase(), 6);
-    $("#picks").innerHTML = (v && !it && pk.length) ? `<div class="picks">${pk.map(p => `<button type="button" data-pick="${esc(p.ma)}">${esc(p.ma)}</button>`).join("")}</div>` : (v && !it ? `<div class="hintline">Mã chưa có trong danh mục — kiểm tra lại.</div>` : "");
-    $$("#picks [data-pick]").forEach(b => b.onclick = () => { $("#ma").value = b.dataset.pick; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
+    renderItemSuggest($("#picks"), e.target.value, ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#sl").focus(); });
   };
   $("#add").onclick = addDraft; renderDraft();
 }

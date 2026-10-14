@@ -257,7 +257,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v15";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v16";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -268,7 +268,7 @@ if (!cfg || !cfg.url || !cfg.anonKey) {
 const sb = supabase.createClient(cfg.url, cfg.anonKey);
 
 const PAGE = 60;
-const TABS = [["ton","🔎","Tồn kho"],["nhap","📥","Nhập"],["xuat","📤","Xuất"],["nhat","🧺","Nhặt"],["kk","✅","Kiểm kê"],["phieu","🧾","Phiếu"]];
+const TABS = [["ton","🔎","Tồn kho"],["nhap","📥","Nhập"],["xuat","📤","Xuất"],["nhat","📄","PXK"],["kk","✅","Kiểm kê"],["phieu","🧾","Phiếu"]];
 const LS_ME = "kho_me";
 const S = {
   tab: "ton", me: null, isAdmin: false,
@@ -718,10 +718,12 @@ function viewIssue() {
       <div class="row"><input id="ma" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên" enterkeyhint="next">${scanBtn("ma")}</div>
       <div id="tip" class="mut" style="margin-top:5px;min-height:18px"></div>
       <div id="picksh"></div><div id="recent"></div>
+      <label>Nơi nhận / khách hàng (tuỳ chọn)</label><input id="dt" list="dl-custs" enterkeyhint="done">${dlCust()}
+      <label>Số lượng</label>
       <div class="row" style="margin-top:2px"><input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num placeholder="Số lượng" enterkeyhint="done"><button class="btn fit" id="add" style="min-width:56px">＋</button></div>
       <div id="order"></div>
     </div>
-    <p class="hintline">Hệ thống tự lấy lô theo <b>${esc(S.xuatRule)}</b> (nhập trước xuất trước, bỏ hàng hết hạn). Bấm <b>Xem &amp; xuất kho</b> để xem lấy ở đâu, số lượng bao nhiêu rồi mới ghi sổ.</p>`;
+    <p class="hintline">Bấm <b>XUẤT KHO</b> là <b>xong luôn</b>: hệ thống tự chọn lô và vị trí theo <b>${esc(S.xuatRule)}</b> (bỏ hàng hết hạn), trừ tồn và hiện phiếu xuất để đi lấy hàng. Không cần xác nhận lần 2.</p>`;
   bindScan($("#main"));
   $("#ma").oninput = e => {
     const v = e.target.value.trim();
@@ -756,41 +758,25 @@ function renderOrder() {
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
     <div class="grid2" style="margin-top:12px">
       <button class="btn ghost" id="clr-o">Xóa hết</button>
-      <button class="btn" id="go-o">📋 Xem &amp; xuất kho</button></div>`;
+      <button class="btn" id="go-o">📤 XUẤT KHO</button></div>`;
   $$("#order [data-del]").forEach(b => b.onclick = () => { S.order.splice(Number(b.dataset.del), 1); renderOrder(); });
   $("#clr-o").onclick = () => { S.order = []; renderOrder(); };
   $("#go-o").onclick = reviewOrder;
 }
 async function reviewOrder() {
   if (!S.order.length) return toast("Chưa có mặt hàng nào.", true);
-  const btn = $("#go-o"); busy(btn, true, "Đang tính…");
+  const btn = $("#go-o"); busy(btn, true, "Đang xuất…");
   let alloc;
   try { alloc = await allocateOrder(S.order); }
   catch (e) { toast(e.message, true); busy(btn, false); return; }
-  busy(btn, false);
   if (alloc.thieu.length) {
+    busy(btn, false);
     return toast("Không đủ tồn khả dụng: " + alloc.thieu.map(t => `${t.ma_hang} thiếu ${fmt(t.thieu)}`).join(", "), true);
   }
-  const totalLines = alloc.out.reduce((a, o) => a + o.picks.length, 0);
-  const vts = new Set(); alloc.out.forEach(o => o.picks.forEach(p => vts.add(p.vi_tri)));
-  sheet(`<h3>📋 Phiếu lấy hàng</h3>
-    <div class="mut" style="margin:2px 0 8px">Tự động theo <b>${esc(S.xuatRule)}</b> · ${alloc.out.length} mặt hàng</div>
-    <div class="stat"><div><span>Mặt hàng</span><b>${alloc.out.length}</b></div>
-      <div><span>Dòng lấy</span><b>${totalLines}</b></div><div><span>Vị trí</span><b>${vts.size}</b></div></div>
-    ${alloc.out.map(o => `<div class="card" style="box-shadow:none;margin:10px 0 0">
-      <div class="row"><h3 class="code">${esc(o.ma_hang)} · ${fmt(o.need)}</h3></div>
-      <div class="mut" style="margin-bottom:2px">${esc(nameOf(o.ma_hang, o.ten))}</div>
-      ${o.picks.map(p => `<div class="lot"><div class="info"><span class="loc">📍 ${esc(p.vi_tri)}</span>
-        <div class="mut">Lấy <b>${fmt(p.take)}</b>${p.lo ? " · lô " + esc(p.lo) : ""} ${p.hsd ? "· HSD " + esc(p.hsd) : ""}${p.ngay_nhap ? " · nhập " + esc(p.ngay_nhap) : ""}</div>
-      </div></div>`).join("")}
-    </div>`).join("")}
-    <label>Ghi chú (tuỳ chọn)</label><input id="gc" enterkeyhint="done">
-    <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu xuất</button></p>`, (el, close) => {
-    $("#post", el).onclick = () => {
-      const lines = allocToLines(alloc.out);
-      submitVoucher($("#post", el), "XUAT", "", $("#gc", el).value, lines, so => { close(); S.order = []; renderOrder(); openPick(so); });
-    };
-  });
+  // 1 bước: ghi sổ ngay (hệ thống tự chọn lô/vị trí theo FIFO/FEFO), rồi mở phiếu xuất để đi lấy hàng
+  const dt = ($("#dt") || {}).value || "";
+  const so = await submitVoucher(btn, "XUAT", dt, "", allocToLines(alloc.out), null);
+  if (so) { S.order = []; refreshRef(true); voucherDetail(so); }
 }
 
 // ------------------------------------------------------------------ TAB: Nhập kho
@@ -843,11 +829,11 @@ function renderDraft() {
       <div class="mut">${esc(nameOf(l.ma_hang))}${l.lo ? " · lô " + esc(l.lo) : ""}${l.nsx ? " · NSX " + esc(l.nsx) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · 📍 " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
     <label>Nhà cung cấp / ghi chú chung</label><input id="dg" enterkeyhint="done" placeholder="Tuỳ chọn">
-    <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ Ghi sổ phiếu nhập</button></p></div>`;
+    <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ NHẬP KHO</button></p></div>`;
   $$("#draft [data-del]").forEach(b => b.onclick = () => { S.draft.splice(Number(b.dataset.del), 1); renderDraft(); });
   $("#post").onclick = () => {
     const lines = S.draft.map(l => ({ ma_hang: l.ma_hang, lo: l.lo || "", nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl: l.sl }));
-    submitVoucher($("#post"), "NHAP", $("#dg").value, "", lines, () => { S.draft = []; viewReceive(); });
+    submitVoucher($("#post"), "NHAP", $("#dg").value, "", lines, () => { S.draft = []; refreshRef(true); viewReceive(); });
   };
 }
 
@@ -948,8 +934,7 @@ async function voucherDetail(so) {
     const [v] = await must(sb.from("vouchers").select("*").eq("so", so).limit(1));
     const lines = await must(sb.from("voucher_lines").select("*").eq("so", so).order("stt"));
     if (!v) { toast("Không tìm thấy phiếu.", true); return; }
-    if (v.loai === "XUAT") return openPickScreen(v, lines);
-    renderPickSheet(v, lines);
+    openPickScreen(v, lines);
   } catch (e) { toast(e.message, true); }
 }
 function openPick(so) { voucherDetail(so); }
@@ -994,153 +979,90 @@ function renderPickSheet(v, lines) {
     });
 }
 
-// ------------------------------------------------------------------ TAB: Nhặt hàng (đồng bộ giữa các máy)
+// ------------------------------------------------------------------ TAB: PXK (danh sách phiếu xuất) + phiếu dạng bảng
 const natCmp = (a, b) => String(a).localeCompare(String(b), "vi", { numeric: true, sensitivity: "base" });
 function viewPickList() {
-  $("#title").textContent = "Nhặt hàng"; $("#sub").textContent = "Phiếu xuất cần lấy hàng";
-  S.pkFilter ||= "todo";
-  $("#main").innerHTML = `<div class="seg">${[["todo","Cần nhặt"],["done","Đã xong"]]
-      .map(([k, t]) => `<button data-f="${k}" class="${S.pkFilter === k ? "on" : ""}">${t}</button>`).join("")}</div>
-    <div id="pl"></div>
-    <p class="hintline">Phiếu xuất lập trên máy tính hoặc điện thoại đều hiện ở đây. Mọi người cùng thấy dòng nào đã lấy. Tự cập nhật mỗi 10 giây.</p>`;
-  $$(".seg button").forEach(b => b.onclick = () => { S.pkFilter = b.dataset.f; viewPickList(); });
-  loadPickList(true);
   clearInterval(S.pkListTimer);
-  S.pkListTimer = setInterval(() => { if (S.tab === "nhat" && !$(".pickscreen")) loadPickList(false); }, 10000);
+  $("#title").textContent = "Phiếu xuất kho"; $("#sub").textContent = "Bấm phiếu để xem & đi lấy hàng";
+  $("#main").innerHTML = `<div id="pl"></div>
+    <p class="hintline">Phiếu xuất lập trên máy tính hoặc điện thoại đều hiện ở đây. Tạo phiếu xuất mới ở tab <b>Xuất</b>.</p>`;
+  loadPickList(true);
 }
 async function loadPickList(showLoading) {
   const box = $("#pl"); if (!box) return;
   if (showLoading) box.innerHTML = `<div class="empty">Đang tải…</div>`;
   try {
-    const rows = await must(sb.from("v_pick_progress").select("*").gte("ngay", addDays(-14))
-      .order("created_at", { ascending: false }).limit(80));
-    const isDone = r => r.so_dong > 0 && r.da_lay >= r.so_dong;
-    const list = rows.filter(r => r.so_dong > 0 && (S.pkFilter === "done" ? isDone(r) : !isDone(r)));
-    box.innerHTML = list.map(r => {
-      const pct = r.so_dong ? Math.round(100 * r.da_lay / r.so_dong) : 0;
-      return `<div class="card" data-so="${esc(r.so)}" style="padding:13px"><div class="row"><div>
+    const rows = await must(sb.from("v_pick_progress").select("*").gte("ngay", addDays(-30))
+      .order("created_at", { ascending: false }).limit(60));
+    box.innerHTML = rows.map(r => `<div class="card" data-so="${esc(r.so)}" style="padding:13px"><div class="row"><div>
         <h3><span class="code">${esc(r.so)}</span></h3>
         <div style="font-weight:600;margin-top:2px">${esc(r.doi_tac || r.ghi_chu || "(không ghi nơi nhận)")}</div>
-        <div class="mut">${esc(r.ngay)} · ${esc(r.nguoi_lap || "")} · ${r.so_dong} dòng</div></div>
-        <span class="chip ${isDone(r) ? "ok" : (r.da_lay ? "warn" : "gray")} fit">${isDone(r) ? "Đã nhặt đủ" : r.da_lay + "/" + r.so_dong}</span></div>
-        <div class="pbar ${isDone(r) ? "full" : ""}"><i style="width:${pct}%"></i></div></div>`;
-    }).join("") || `<div class="empty">${S.pkFilter === "done" ? "Chưa có phiếu nào nhặt xong." : "🎉 Không có phiếu nào cần nhặt."}</div>`;
-    $$("#pl [data-so]").forEach(c => c.onclick = () => openPickByNo(c.dataset.so));
+        <div class="mut">${esc(r.ngay)} · ${esc(r.nguoi_lap || "")} · ${r.so_dong} dòng · SL ${fmt(r.tong_sl)}</div></div>
+        <span class="chip ${r.trang_thai === "Đã ghi sổ" ? "ok" : "warn"} fit">${esc(r.trang_thai || "")}</span></div></div>`).join("")
+      || `<div class="empty">Chưa có phiếu xuất nào trong 30 ngày.</div>`;
+    $$("#pl [data-so]").forEach(c => c.onclick = () => voucherDetail(c.dataset.so));
   } catch (e) { if (showLoading) box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
-async function openPickByNo(so) {
-  try {
-    const [v] = await must(sb.from("vouchers").select("*").eq("so", so).limit(1));
-    const lines = await must(sb.from("voucher_lines").select("*").eq("so", so).order("stt"));
-    if (!v) return toast("Không tìm thấy phiếu.", true);
-    openPickScreen(v, lines);
-  } catch (e) { toast(e.message, true); }
-}
 
+const DOC_TITLE = { XUAT: "PHIẾU XUẤT KHO", NHAP: "PHIẾU NHẬP KHO", CHUYEN: "PHIẾU CHUYỂN VỊ TRÍ", KK: "BIÊN BẢN KIỂM KÊ", DOI: "PHIẾU ĐỔI HÀNG" };
+// Phiếu dạng bảng, CHỈ ĐỂ XEM: mã hàng, tên hàng, vị trí, số lượng, HSD. Mỗi vị trí 1 dòng (cùng mã ở 2 vị trí = 2 dòng).
 async function openPickScreen(v, lines) {
-  clearInterval(S.pkTimer);
   const old = $(".pickscreen"); if (old) old.remove();
-  // dòng chưa có vị trí (phiếu nháp từ máy tính): gợi ý vị trí theo nguyên tắc xuất
   const sug = {};
-  const un = lines.filter(l => !l.vi_tri);
-  if (un.length) {
+  const un = v.loai === "XUAT" ? lines.filter(l => !l.vi_tri) : [];
+  if (un.length) {   // phiếu nháp chưa có vị trí: gợi ý lấy ở đâu (tách thành nhiều dòng nếu nhiều vị trí)
     try { const a = await allocateOrder(un.map(l => ({ ma_hang: l.ma_hang, sl: l.sl })));
       a.out.forEach((o, i) => { sug[un[i].id] = o.picks; }); } catch {}
   }
-  const locOf = l => l.vi_tri || ((sug[l.id] || [])[0] || {}).vi_tri || "";
-  const rows = lines.map(l => ({ ...l })).sort((a, b) => {
-    const la = locOf(a), lb = locOf(b);
-    if (!la !== !lb) return la ? -1 : 1;          // chưa rõ vị trí xuống cuối
-    return natCmp(la, lb) || natCmp(a.ma_hang, b.ma_hang);
+  const rows = [];
+  lines.forEach(l => {
+    const s2 = sug[l.id];
+    if (!l.vi_tri && s2 && s2.length) s2.forEach(p => rows.push({ ma_hang: l.ma_hang, vi_tri: p.vi_tri, sl: p.take, lo: p.lo, hsd: p.hsd, goiy: true }));
+    else rows.push({ ma_hang: l.ma_hang, vi_tri: l.vi_tri || "", den: l.vi_tri_den || "",
+      sl: v.loai === "KK" ? (l.sl_thuc_te ?? l.sl) : l.sl, so_sach: v.loai === "KK" ? l.sl_so_sach : null, lo: l.lo, hsd: l.hsd });
   });
+  rows.sort((a, b) => (!a.vi_tri - !b.vi_tri) || natCmp(a.vi_tri, b.vi_tri) || natCmp(a.ma_hang, b.ma_hang) ||
+    String(a.hsd || "9999").localeCompare(String(b.hsd || "9999")));
+  const total = rows.reduce((a, r) => a + Number(r.sl || 0), 0);
+  const dvt = ma => (itemView(ma) || {}).dvt || "";
+  const who = v.loai === "XUAT" ? "Nơi nhận" : (v.loai === "NHAP" ? "Nhà cung cấp" : "Đối tác");
+  const me = (S.me.ho_ten || S.me.username || "");
+  const canDelete = S.isAdmin || ((v.nguoi_lap || "") === me && v.ngay === today());
+  const draft = v.trang_thai && v.trang_thai !== "Đã ghi sổ";
+
   const el = document.createElement("div"); el.className = "pickscreen";
   el.innerHTML = `<div class="ph"><div class="t"><button class="tb btn sm fit" id="pback" style="background:rgba(255,255,255,.16);color:#fff;min-height:38px">‹ Quay lại</button>
-      <b>Phiếu xuất kho</b><span class="chip fit" id="pcnt"></span></div>
-      <div class="sub">Đã lấy <span id="psub"></span> dòng · chạm dòng để đánh dấu đã lấy</div>
-      <div class="bar"><i id="pbar"></i></div></div>
-    <div class="pl"><div id="plist"></div>
-      ${S.isAdmin ? `<p style="margin:18px 0 6px;text-align:center"><button class="btn bad sm" id="pundo">Hủy phiếu (hoàn lại tồn kho)</button></p>` : ""}</div>`;
-  document.body.append(el);
-
-  const dvt = ma => (itemView(ma) || {}).dvt || "";
-  function paint() {
-    const done = rows.filter(r => r.da_lay).length;
-    const total = rows.reduce((a, r) => a + Number(r.sl || 0), 0);
-    $("#pcnt", el).textContent = `${done}/${rows.length}`;
-    $("#psub", el).textContent = `${done}/${rows.length}`;
-    $("#pbar", el).style.width = (rows.length ? 100 * done / rows.length : 0) + "%";
-    const cur = rows.find(r => !r.da_lay);
-    const ln = r => { const s = sug[r.id]; return r.vi_tri ? r.vi_tri : (s && s.length ? s.map(p => p.vi_tri).join(" + ") : ""); };
-    const meta = r => [r.lo ? "lô " + r.lo : "", r.hsd ? "HSD " + r.hsd : ""].filter(Boolean).join(" · ");
-    let html = `<div class="doc"><div class="ttl">PHIẾU XUẤT KHO</div><dl>
-      <dt>Số phiếu</dt><dd class="code">${esc(v.so)}</dd>
-      <dt>Ngày</dt><dd>${esc(v.ngay)}</dd>
-      <dt>Nơi nhận</dt><dd>${esc(v.doi_tac || v.ghi_chu || "—")}</dd>
-      <dt>Người lập</dt><dd>${esc(v.nguoi_lap || "—")}</dd>
-      <dt>Tổng cộng</dt><dd>${rows.length} dòng · ${fmt(total)}</dd></dl></div>`;
-    if (!cur && rows.length) {
-      html += `<div class="allok">✔ ĐÃ NHẶT ĐỦ ${rows.length}/${rows.length} DÒNG</div>`;
-    } else if (cur) {
-      const i = rows.indexOf(cur) + 1, s = sug[cur.id];
-      html += `<div class="nx"><div class="tag">LẤY TIẾP · DÒNG ${i}/${rows.length}</div>
-        <div class="lc">📍 ${esc(ln(cur) || "chưa rõ vị trí")}</div>
-        <div class="nm">${esc(nameOf(cur.ma_hang))}</div>
-        <div class="meta"><span class="code">${esc(cur.ma_hang)}</span>${meta(cur) ? " · " + esc(meta(cur)) : ""}</div>
-        <div class="q">${fmt(cur.sl)}<small>${esc(dvt(cur.ma_hang))}</small></div>
-        ${!cur.vi_tri && s && s.length > 1 ? `<div class="meta">Lấy: ${s.map(p => `${esc(p.vi_tri)} ×${fmt(p.take)}`).join(" + ")}</div>` : ""}
-        <button class="btn" id="nxok">✓ ĐÃ LẤY</button>
-        <div class="skip">Chạm dòng bất kỳ bên dưới để đánh dấu / bỏ đánh dấu</div></div>`;
-    }
-    html += `<div class="tbl"><div class="th"><span>STT</span><span>Hàng hóa</span><span style="text-align:right">Vị trí · SL</span></div>` +
-      rows.map((r, k) => `<div class="pr ${r.da_lay ? "done" : (r === cur ? "cur" : "")}" data-id="${r.id}">
-        <div class="no">${r.da_lay ? "✓" : k + 1}</div>
+      <b>${esc(DOC_TITLE[v.loai] || "PHIẾU")}</b></div></div>
+    <div class="pl">
+      <div class="doc"><div class="ttl">${esc(DOC_TITLE[v.loai] || "PHIẾU")}</div><dl>
+        <dt>Số phiếu</dt><dd class="code">${esc(v.so)}</dd>
+        <dt>Ngày</dt><dd>${esc(v.ngay)}</dd>
+        <dt>${who}</dt><dd>${esc(v.doi_tac || "—")}</dd>
+        <dt>Người lập</dt><dd>${esc(v.nguoi_lap || "—")}</dd>
+        ${v.ghi_chu ? `<dt>Ghi chú</dt><dd>${esc(v.ghi_chu)}</dd>` : ""}
+        <dt>Tổng cộng</dt><dd>${rows.length} dòng · SL ${fmt(total)}</dd></dl>
+        ${draft ? `<div style="margin-top:8px"><span class="chip warn">${esc(v.trang_thai)} (chưa ghi sổ trên máy tính)</span></div>` : ""}</div>
+      <div class="tbl"><div class="th"><span>STT</span><span>Hàng hóa</span><span style="text-align:right">Vị trí · SL</span></div>
+      ${rows.map((r, k) => `<div class="pr"><div class="no">${k + 1}</div>
         <div><div class="nm">${esc(nameOf(r.ma_hang))}</div>
-          <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${meta(r) ? " · " + esc(meta(r)) : ""}</div>
-          ${r.da_lay && r.lay_boi ? `<div class="who">✓ ${esc(r.lay_boi)}${r.lay_luc ? " · " + esc(String(r.lay_luc).slice(11, 16)) : ""}</div>` : ""}</div>
-        <div><div class="lc">${esc(ln(r) || "—")}</div><div class="q">${fmt(r.sl)} <span class="mut">${esc(dvt(r.ma_hang))}</span></div></div></div>`).join("") + `</div>`;
-    $("#plist", el).innerHTML = html;
-    $$(".pr", el).forEach(c => c.onclick = () => toggle(Number(c.dataset.id)));
-    const ok = $("#nxok", el); if (ok && cur) ok.onclick = () => toggle(cur.id);
-  }
-  async function setPicked(ids, val) {
-    const me = S.me.ho_ten || S.me.username, now = new Date().toISOString().replace("T", " ").slice(0, 19);
-    const prev = rows.filter(r => ids.includes(r.id)).map(r => [r.id, r.da_lay, r.lay_boi, r.lay_luc]);
-    rows.forEach(r => { if (ids.includes(r.id)) { r.da_lay = val; r.lay_boi = val ? me : null; r.lay_luc = val ? now : null; } });
-    paint();
-    try { await rpc("set_picked", { p_ids: ids, p_val: val }); }
-    catch (e) {
-      prev.forEach(([id, d, b, t]) => { const r = rows.find(x => x.id === id); if (r) { r.da_lay = d; r.lay_boi = b; r.lay_luc = t; } });
-      paint(); toast("Không lưu được: " + e.message, true);
-    }
-  }
-  const toggle = id => {
-    const r = rows.find(x => x.id === id); if (!r) return;
-    vibrate(r.da_lay ? 10 : 25);
-    setPicked([id], !r.da_lay).then(() => {
-      if (rows.length && rows.every(x => x.da_lay)) { vibrate([60, 40, 60]); toast("✔ Đã nhặt đủ phiếu"); }
-    });
-  };
-  const close = () => { clearInterval(S.pkTimer); el.remove(); if (S.tab === "nhat") loadPickList(false); };
+          <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${r.lo ? " · lô " + esc(r.lo) : ""}</div>
+          ${r.hsd ? `<div style="margin-top:2px">${hsdChip(r.hsd)}</div>` : ""}
+          ${r.goiy ? `<div class="sug">gợi ý theo ${esc(S.xuatRule)}</div>` : ""}</div>
+        <div><div class="lc">${esc(r.vi_tri || "—")}${r.den ? " → " + esc(r.den) : ""}</div>
+          <div class="q">${fmt(r.sl)} <span class="mut">${esc(dvt(r.ma_hang))}</span></div>
+          ${r.so_sach != null ? `<div class="mut" style="text-align:right">sổ sách ${fmt(r.so_sach)}</div>` : ""}</div></div>`).join("")}</div>
+      ${canDelete ? `<p style="margin:20px 0 8px;text-align:center"><button class="btn bad sm" id="pundo">🗑 Xóa phiếu (hoàn lại tồn kho)</button></p>` : ""}
+    </div>`;
+  document.body.append(el);
+  const close = () => { el.remove(); if (S.tab === "nhat") loadPickList(false); else if (S.tab === "phieu") loadVouchers(false); };
   $("#pback", el).onclick = close;
   const u = $("#pundo", el);
   if (u) u.onclick = async () => {
-    if (!confirm(`Hủy phiếu ${v.so} và hoàn lại tồn kho?`)) return;
-    busy(u, true, "…");
-    try { await rpc("undo_voucher", { p_so: v.so }); toast("Đã hủy phiếu."); close(); if (S.tab === "phieu") viewVouchers(); }
+    if (!confirm(`Xóa phiếu ${v.so}?\nTồn kho sẽ được hoàn lại như trước khi có phiếu này.`)) return;
+    busy(u, true, "Đang xóa…");
+    try { await rpc("undo_voucher", { p_so: v.so }); toast(`Đã xóa phiếu ${v.so}`); vibrate(20); refreshRef(true); close(); }
     catch (e) { toast(e.message, true); busy(u, false); }
   };
-  paint();
-  // đồng bộ trạng thái "đã lấy" từ máy khác mỗi 6 giây
-  S.pkTimer = setInterval(async () => {
-    if (!document.body.contains(el)) return clearInterval(S.pkTimer);
-    try {
-      const fresh = await must(sb.from("voucher_lines").select("id,da_lay,lay_boi,lay_luc").eq("so", v.so));
-      let ch = false;
-      fresh.forEach(f => { const r = rows.find(x => x.id === f.id);
-        if (r && (r.da_lay !== f.da_lay)) { r.da_lay = f.da_lay; r.lay_boi = f.lay_boi; r.lay_luc = f.lay_luc; ch = true; } });
-      if (ch) paint();
-    } catch {}
-  }, 6000);
 }
 
 // -------------------------------------------------------------- PWA

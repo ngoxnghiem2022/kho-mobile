@@ -1,6 +1,6 @@
 // Service worker Kho Mobile: cache khung app để mở nhanh / dùng khi mạng chập chờn.
 // KHÔNG cache dữ liệu Supabase (mọi thao tác kho luôn cần mạng để đảm bảo an toàn tồn kho).
-const CACHE = "kho-mobile-v12";
+const CACHE = "kho-mobile-v13";
 const CORE = [
   "./", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png",

@@ -257,7 +257,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v18";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v19";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -640,14 +640,13 @@ function lotHead(l) {
 function sheetIssue(l) {
   sheet(`${lotHead(l)}<label>Số lượng xuất (tối đa ${fmt(l.sl)})</label>
     <input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num enterkeyhint="done" value="${l.sl}">
-    <label>Nơi nhận / khách hàng</label><input id="dt" list="dl-custs" enterkeyhint="done">${dlCust()}
-    <label>Ghi chú</label><input id="gc" enterkeyhint="done">
+    <label>Ghi chú · đơn hàng nào</label><input id="gc" enterkeyhint="done" placeholder="VD: đơn Highlands 15/10…">
     <p><button class="btn" id="ok" style="width:100%">Xuất kho</button></p>`, (el, close) => {
     const inp = $("#sl", el); inp.focus(); inp.select && inp.select();
     $("#ok", el).onclick = () => {
       const sl = Number($("#sl", el).value);
       if (!(sl > 0) || sl > l.sl) return toast(`Số lượng phải trong khoảng 0 – ${fmt(l.sl)}.`, true);
-      submitVoucher($("#ok", el), "XUAT", $("#dt", el).value, $("#gc", el).value,
+      submitVoucher($("#ok", el), "XUAT", "", $("#gc", el).value,
         [{ ma_hang: l.ma_hang, lo: l.lo, nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl }],
         so => { close(); openPick(so); });
     };
@@ -718,7 +717,7 @@ function viewIssue() {
       <div class="row"><input id="ma" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên" enterkeyhint="next">${scanBtn("ma")}</div>
       <div id="tip" style="margin-top:6px"></div>
       <div id="picksh"></div><div id="recent"></div>
-      <label>Nơi nhận / khách hàng (tuỳ chọn)</label><input id="dt" list="dl-custs" enterkeyhint="done">${dlCust()}
+      <label>Ghi chú · đơn hàng nào</label><input id="gc" enterkeyhint="done" placeholder="VD: đơn Highlands 15/10, PO 12345…">
       <label>Số lượng</label>
       <div class="row" style="margin-top:2px"><input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num placeholder="Số lượng" enterkeyhint="done"><button class="btn fit" id="add" style="min-width:56px">＋</button></div>
       <div id="order"></div>
@@ -794,8 +793,8 @@ async function reviewOrder() {
     return toast("Không đủ tồn khả dụng: " + alloc.thieu.map(t => `${t.ma_hang} thiếu ${fmt(t.thieu)}`).join(", "), true);
   }
   // 1 bước: ghi sổ ngay (hệ thống tự chọn lô/vị trí theo FIFO/FEFO), rồi mở phiếu xuất để đi lấy hàng
-  const dt = ($("#dt") || {}).value || "";
-  const so = await submitVoucher(btn, "XUAT", dt, "", allocToLines(alloc.out), null);
+  const gc = (($("#gc") || {}).value || "").trim();
+  const so = await submitVoucher(btn, "XUAT", "", gc, allocToLines(alloc.out), null);
   if (so) { S.order = []; refreshRef(true); voucherDetail(so); }
 }
 
@@ -1065,10 +1064,25 @@ async function openPickScreen(v, lines) {
   const rows = [];
   lines.forEach(l => {
     const s2 = sug[l.id];
-    if (!l.vi_tri && s2 && s2.length) s2.forEach(p => rows.push({ ma_hang: l.ma_hang, vi_tri: p.vi_tri, sl: p.take, lo: p.lo, hsd: p.hsd, goiy: true }));
+    if (!l.vi_tri && s2 && s2.length) s2.forEach(p => rows.push({ ma_hang: l.ma_hang, vi_tri: p.vi_tri, sl: p.take, lo: p.lo, hsd: p.hsd, goiy: true, nn: p.ngay_nhap || "" }));
     else rows.push({ ma_hang: l.ma_hang, vi_tri: l.vi_tri || "", den: l.vi_tri_den || "",
-      sl: v.loai === "KK" ? (l.sl_thuc_te ?? l.sl) : l.sl, so_sach: v.loai === "KK" ? l.sl_so_sach : null, lo: l.lo, hsd: l.hsd, gc: l.ghi_chu });
+      sl: v.loai === "KK" ? (l.sl_thuc_te ?? l.sl) : l.sl, so_sach: v.loai === "KK" ? l.sl_so_sach : null, lo: l.lo, hsd: l.hsd, gc: l.ghi_chu, nn: l.ngay_nhap || "" });
   });
+  // ngày nhập của lô: ưu tiên ngày đã lưu trên dòng phiếu; chưa có thì tra theo tồn hiện tại rồi thẻ kho
+  if (v.loai !== "NHAP") {
+    const miss = rows.filter(r => !r.nn);
+    if (miss.length) {
+      try {
+        const codes = [...new Set(miss.map(r => r.ma_hang))];
+        const key3 = r => [r.ma_hang, r.lo || "", r.hsd || ""].join("|");
+        const st = await must(sb.from("v_stock").select("ma_hang,lo,hsd,vi_tri,ngay_nhap").in("ma_hang", codes));
+        const byStock = {}; st.forEach(x => { byStock[[x.ma_hang, x.lo || "", x.hsd || "", x.vi_tri || ""].join("|")] = x.ngay_nhap; });
+        const lg = await must(sb.from("ledger").select("ma_hang,lo,hsd,ngay").in("ma_hang", codes).eq("loai", "NHAP").gt("sl_nhap", 0).order("ngay"));
+        const byLedger = {}; lg.forEach(x => { const k = [x.ma_hang, x.lo || "", x.hsd || ""].join("|"); if (!byLedger[k]) byLedger[k] = x.ngay; });
+        miss.forEach(r => { r.nn = byStock[[r.ma_hang, r.lo || "", r.hsd || "", r.vi_tri || ""].join("|")] || byLedger[key3(r)] || ""; });
+      } catch {}
+    }
+  }
   rows.sort((a, b) => (!a.vi_tri - !b.vi_tri) || natCmp(a.vi_tri, b.vi_tri) || natCmp(a.ma_hang, b.ma_hang) ||
     String(a.hsd || "9999").localeCompare(String(b.hsd || "9999")));
   const total = rows.reduce((a, r) => a + Number(r.sl || 0), 0);
@@ -1085,7 +1099,7 @@ async function openPickScreen(v, lines) {
       <div class="doc"><div class="ttl">${esc(DOC_TITLE[v.loai] || "PHIẾU")}</div><dl>
         <dt>Số phiếu</dt><dd class="code">${esc(v.so)}</dd>
         <dt>Ngày</dt><dd>${esc(v.ngay)}</dd>
-        <dt>${who}</dt><dd>${esc(v.doi_tac || "—")}</dd>
+        ${v.doi_tac ? `<dt>${who}</dt><dd>${esc(v.doi_tac)}</dd>` : ""}
         <dt>Người lập</dt><dd>${esc(v.nguoi_lap || "—")}</dd>
         ${v.ghi_chu ? `<dt>Ghi chú</dt><dd>${esc(v.ghi_chu)}</dd>` : ""}
         <dt>Tổng cộng</dt><dd>${rows.length} dòng · SL ${fmt(total)}</dd></dl>
@@ -1094,7 +1108,7 @@ async function openPickScreen(v, lines) {
       ${rows.map((r, k) => `<div class="pr"><div class="no">${k + 1}</div>
         <div><div class="nm">${esc(nameOf(r.ma_hang))}</div>
           <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${r.lo ? " · lô " + esc(r.lo) : ""}</div>
-          ${r.hsd ? `<div style="margin-top:2px">${hsdChip(r.hsd)}</div>` : ""}
+          <div style="margin-top:2px">${r.nn ? `<span class="chip gray">Nhập ${esc(r.nn)}</span>` : ""}${r.hsd ? hsdChip(r.hsd) : ""}</div>
           ${r.gc ? `<div class="mut" style="margin-top:2px">📝 ${esc(r.gc)}</div>` : ""}
           ${r.goiy ? `<div class="sug">gợi ý theo ${esc(S.xuatRule)}</div>` : ""}</div>
         <div><div class="lc">${esc(r.vi_tri || "—")}${r.den ? " → " + esc(r.den) : ""}</div>

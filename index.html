@@ -257,7 +257,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v19";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v20";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -419,6 +419,7 @@ function renderLogin(force) {
     <label>Tên đăng nhập</label><input id="u" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" enterkeyhint="next">
     <label>Mật khẩu</label><input id="p" type="password" autocapitalize="none" autocorrect="off" autocomplete="current-password" enterkeyhint="go">
     <p><button class="btn" style="width:100%" id="go">Đăng nhập</button></p></div>
+    ${isStandalone() ? "" : `<p style="text-align:center"><button class="btn ghost" id="inst-l" style="width:100%">📲 Cài app về máy</button></p>`}
     <p class="hintline" style="text-align:center">Chỉ cần gõ tên đăng nhập (VD <i>lead1</i>) · ${APP_VER}</p>
     <p class="hintline" style="text-align:center">⚠ Nếu bấm vào ô mà <b>không hiện bàn phím</b>: đang mở trong app (Telegram/Zalo/Facebook). Hãy mở bằng <b>Chrome</b> (Android) / <b>Safari</b> (iPhone) — hoặc <b>⋯ → Mở bằng trình duyệt</b>.</p></div>`;
   const go = async () => {
@@ -436,6 +437,7 @@ function renderLogin(force) {
     startApp((await sb.auth.getSession()).data.session);
   };
   $("#go").onclick = go;
+  if ($("#inst-l")) $("#inst-l").onclick = doInstall;
   $("#u").onkeydown = e => { if (e.key === "Enter") $("#p").focus(); };
   $("#p").onkeydown = e => { if (e.key === "Enter") go(); };
 }
@@ -464,12 +466,8 @@ function shell() {
     <main id="main"></main>
     <nav>${TABS.map(([k, i, t]) => `<button data-t="${k}"><b>${i}</b>${t}</button>`).join("")}</nav>`;
   $("#sub").textContent = `${S.me.ho_ten || S.me.username} · ${S.isAdmin ? "Quản trị" : "Nhân viên"}`;
-  if (deferredInstall) $("#install").style.display = "inline-block";
-  $("#install").onclick = async () => {
-    if (!deferredInstall) return;
-    deferredInstall.prompt(); await deferredInstall.userChoice.catch(() => {}); deferredInstall = null;
-    $("#install").style.display = "none";
-  };
+  $("#install").style.display = isStandalone() ? "none" : "inline-block";
+  $("#install").onclick = doInstall;
   $("#out").onclick = async () => {
     if (!confirm("Đăng xuất khỏi Kho Mobile?")) return;
     await sb.auth.signOut(); S.me = null; S.isAdmin = false; S._shelled = false; localStorage.removeItem(LS_ME); renderLogin(true);
@@ -1130,10 +1128,47 @@ async function openPickScreen(v, lines) {
 
 // -------------------------------------------------------------- PWA
 let deferredInstall = null;
+const isStandalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+// Nút "Cài": nếu trình duyệt cho phép thì bật hộp thoại cài luôn; không thì hướng dẫn từng bước đúng trình duyệt
+async function doInstall() {
+  if (deferredInstall) {
+    try { await deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; return; }
+    catch { deferredInstall = null; /* không bật được hộp thoại -> hiện hướng dẫn bên dưới */ }
+  }
+  const ua = navigator.userAgent;
+  const inApp = /Zalo|FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|Telegram|TikTok|MicroMessenger/i.test(ua);
+  const ios = /iPad|iPhone|iPod/.test(ua);
+  const url = location.origin + location.pathname;
+  const step = (n, t) => `<div class="row" style="align-items:flex-start;margin:8px 0"><span class="chip fit">${n}</span><div>${t}</div></div>`;
+  let body;
+  if (inApp) {
+    body = `<div class="hintline" style="color:var(--warn);font-weight:700">⚠ Bạn đang mở trong ứng dụng khác (Zalo / Facebook…), không cài được từ đây.</div>
+      ${step(1, "Bấm nút <b>⋯</b> hoặc <b>⋮</b> ở góc trên")}
+      ${step(2, "Chọn <b>Mở bằng trình duyệt</b> (Chrome / Safari)")}
+      ${step(3, "Trong trình duyệt, bấm lại nút <b>Cài</b> này")}`;
+  } else if (ios) {
+    body = `${step(1, "Mở trang này bằng <b>Safari</b>")}
+      ${step(2, "Bấm nút <b>Chia sẻ</b> (hình vuông có mũi tên ↑) ở thanh dưới")}
+      ${step(3, "Chọn <b>Thêm vào Màn hình chính</b> → <b>Thêm</b>")}`;
+  } else {
+    body = `${step(1, "Bấm nút <b>⋮</b> (3 chấm) ở góc trên bên phải của trình duyệt")}
+      ${step(2, "Chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>")}
+      ${step(3, "Bấm <b>Cài đặt</b> / <b>Thêm</b>. Biểu tượng <b>Kho</b> sẽ hiện ngoài màn hình")}
+      <div class="hintline">Nếu menu không có mục trên: bạn từng thêm rồi → xóa biểu tượng cũ ngoài màn hình, mở lại link này bằng Chrome và làm lại.</div>`;
+  }
+  sheet(`<h3>📲 Cài app về máy</h3><div class="mut" style="margin:2px 0 8px">Cài xong mở như ứng dụng thường, không còn thanh địa chỉ.</div>
+    ${body}
+    <label>Link ứng dụng</label><input id="lnk" readonly value="${esc(url)}" onclick="this.select()">
+    <p><button class="btn" id="cp" style="width:100%">Sao chép link</button></p>`, (el, close) => {
+    $("#cp", el).onclick = async () => {
+      try { await navigator.clipboard.writeText(url); toast("Đã sao chép link"); } catch { $("#lnk", el).select(); toast("Bấm giữ vào link để sao chép"); }
+    };
+  });
+}
 window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault(); deferredInstall = e; const b = $("#install"); if (b) b.style.display = "inline-block";
+  e.preventDefault(); deferredInstall = e; const b = $("#install"); if (b && !isStandalone()) b.style.display = "inline-block";
 });
-window.addEventListener("appinstalled", () => { deferredInstall = null; const b = $("#install"); if (b) b.style.display = "none"; });
+window.addEventListener("appinstalled", () => { deferredInstall = null; const b = $("#install"); if (b) b.style.display = "none"; const l = $("#inst-l"); if (l) l.style.display = "none"; toast("Đã cài app Kho"); });
 if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 
 sb.auth.onAuthStateChange(ev => { if (ev === "SIGNED_OUT" && S._shelled) { S._shelled = false; renderLogin(true); } });

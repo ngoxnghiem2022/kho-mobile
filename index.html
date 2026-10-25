@@ -314,6 +314,16 @@ border-radius:999px;padding:9px 14px;font:700 13.5px inherit;min-height:40px}
 .kgrp .chip,.kid .chip{white-space:nowrap}
 .tree-hint{font-size:12px;color:var(--mut);margin:8px 2px 0;display:flex;gap:12px;flex-wrap:wrap}
 .tree-hint span{white-space:nowrap}
+.sec{display:flex;align-items:center;gap:8px;margin:18px 2px 6px;padding:9px 10px;border-radius:12px;background:var(--pri2);color:var(--pri-ink);position:sticky;top:calc(var(--hh) + 4px);z-index:5}
+.sec.kien{background:#fef3c7;color:#92400e}
+.sec b{flex:1;font-size:13.5px;line-height:1.2}
+.sec .mut{color:inherit;opacity:.85;font-size:12px}
+.sec .btn{min-height:34px;padding:6px 10px;font-size:12.5px}
+.pchips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 6px;scrollbar-width:none}
+.pchips::-webkit-scrollbar{display:none}
+.pchips button{flex:none;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 12px;font:800 14px ui-monospace,Menlo,Consolas,monospace;min-height:44px;text-align:left}
+.pchips button small{display:block;font:600 10.5px system-ui;color:var(--mut)}
+.pchips button.d{border-color:var(--ok)}.pchips button.p{border-color:#f59e0b}
 </style>
 </head>
 <body>
@@ -353,7 +363,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v29";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v30";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -1295,7 +1305,7 @@ async function kkOverview(refetch) {
         <div class="vb">${tbadge(g.code)}<span class="vtitle code" style="display:inline">${esc(g.code)}</span><span style="font:600 12px system-ui;color:var(--mut)">${esc(nm)}</span>
           <div class="vmeta" style="margin-top:3px">${hasKids ? `gồm <b>${g.kids.length} kiện</b> · kiện đủ ${kd.filter(u => u.st === "done").length}/${g.kids.length} · ` : ""}${g.nMa} mã · SL ${fmt(g.sl)}</div></div>
         ${chipSt(g.st)}${hasKids ? `<span class="arr2">›</span>` : ""}</div>
-      ${hasKids ? `<div class="kids">${stat[g.code] ? unitRow(g.code, true) : ""}${g.kids.map(k => unitRow(k)).join("")}</div>` : ""}</div>`;
+      ${hasKids ? `<div class="kids"><button class="btn" data-kp="${esc(g.code)}" style="width:100%;margin:2px 0 6px;min-height:46px">▶ KIỂM CẢ PALLET ${esc(g.code)} (${g.kids.length} kiện)</button>${stat[g.code] ? unitRow(g.code, true) : ""}${g.kids.map(k => unitRow(k)).join("")}</div>` : ""}</div>`;
   }).join("") || `<div class="empty">${f === "done" ? "Chưa có pallet nào kiểm đủ." : "🎉 Không còn pallet / kiện nào cần kiểm."}</div>`;
   const kf = f === "none" || f === "part" ? "need" : f;
   box.innerHTML = `<div class="card"><div class="head"><h3>📊 Tiến độ kiểm kê toàn kho</h3></div>
@@ -1305,6 +1315,8 @@ async function kkOverview(refetch) {
     <div class="stat" style="margin-top:8px"><div><span>Chưa kiểm</span><b style="color:var(--bad)">${none}</b></div><div><span>Dở</span><b style="color:var(--warn)">${part}</b></div><div><span>Đủ</span><b style="color:var(--ok)">${done}</b></div>
       <div><span>Kiện đủ</span><b>${kDone}/${nKien}</b></div><div><span>Dòng lệch</span><b style="color:${thieu + thua ? "var(--bad)" : "var(--ok)"}">${thieu + thua}</b></div></div>
     ${S.isAdmin ? `<p style="margin:10px 0 0"><button class="btn ghost sm2" id="kkreset">🔄 Bắt đầu đợt kiểm kê mới (từ hôm nay)</button></p>` : ""}
+    <div class="section" style="margin:12px 2px 2px">Chọn pallet để kiểm CẢ pallet (hàng nguyên thùng + các kiện)</div>
+    <div class="pchips">${groups.map(g => `<button data-kp="${esc(g.code)}" class="${g.st === "done" ? "d" : g.st === "part" ? "p" : ""}">${g.st === "done" ? "✅ " : g.st === "part" ? "🟡 " : ""}${esc(g.code)}<small>${g.kids.length ? g.kids.length + " kiện · " : ""}${g.nMa} mã</small></button>`).join("")}</div>
     <div class="tree-hint"><span><span class="tbadge p" style="margin:0">PALLET</span> hàng nguyên thùng + kiện</span><span><span class="tbadge k" style="margin:0">KIỆN 1,2…</span> đánh số, đựng hàng lẻ</span><span><span class="tbadge v" style="margin:0">VỊ TRÍ</span> đơn lẻ</span></div>
     <div class="seg" style="margin-top:10px">${[["all", `Tất cả (${groups.length})`], ["need", `Cần kiểm (${needG})`], ["done", `Đã đủ (${doneG})`]]
       .map(([k, t]) => `<button data-kf="${k}" class="${kf === k ? "on" : ""}">${t}</button>`).join("")}</div>
@@ -1315,6 +1327,7 @@ async function kkOverview(refetch) {
     else kkOpen(h.dataset.gh);
   });
   $$(".kid[data-kl]", box).forEach(c => c.onclick = () => kkOpen(c.dataset.kl));
+  $$("[data-kp]", box).forEach(b => b.onclick = e => { e.stopPropagation(); kkOpen(b.dataset.kp); });
   if ($("#kkreset", box)) $("#kkreset", box).onclick = async () => {
     if (!confirm("Bắt đầu ĐỢT KIỂM KÊ MỚI từ hôm nay?\nTiến độ sẽ tính lại từ 0 (các biên bản cũ vẫn được giữ).")) return;
     try { await must(sb.from("settings").upsert({ key: "kk_start", value: today() })); S.kkStart = today(); toast("Đã bắt đầu đợt kiểm kê mới."); kkOverview(true); }
@@ -1325,14 +1338,17 @@ async function kkOpen(raw) {
   const loc = String(raw || "").trim().toUpperCase();
   if (!loc) return toast("Nhập mã vị trí.", true);
   try {
-    const rows = await must(sb.from("v_stock").select("*").eq("vi_tri", loc).order("ma_hang").order("hsd"));
-    if (!rows.length && !S.locs.some(l => l.ma === loc)) { toast(`Vị trí ${loc} chưa có trong hệ thống.`, true); return; }
+    const kids = S.locs.filter(l => l.cha === loc).sort((x, y) => (x.kien || 0) - (y.kien || 0) || natCmp(x.ma, y.ma)).map(l => l.ma);
+    const codes = [loc, ...kids];
+    const rows = await must(sb.from("v_stock").select("*").in("vi_tri", codes).gt("sl", 0).order("ma_hang").order("hsd"));
+    if (!rows.length && !kids.length && !S.locs.some(l => l.ma === loc)) { toast(`Vị trí ${loc} chưa có trong hệ thống.`, true); return; }
+    rows.sort((x, y) => codes.indexOf(x.vi_tri) - codes.indexOf(y.vi_tri));
     const saved = kkLoadSaved(loc), ids = new Set(rows.map(r => String(r.id)));
-    S.kk = { loc, rows, marks: {}, extras: [], open: null };
+    S.kk = { loc, locs: codes, kids, rows, marks: {}, extras: [], open: null };
     if (saved) {
       Object.entries(saved.marks || {}).forEach(([id, m]) => { if (ids.has(id)) S.kk.marks[id] = m; });
       S.kk.extras = saved.extras || [];
-      if (Object.keys(S.kk.marks).length) toast("Đã khôi phục phần kiểm trước đó của vị trí này.");
+      if (Object.keys(S.kk.marks).length) toast("Đã khôi phục phần kiểm trước đó.");
     }
     kkCount();
   } catch (e) { toast(e.message, true); }
@@ -1373,7 +1389,7 @@ function kkCard(r) {
 function kkExtraCard(x, i) {
   const it = itemView(x.ma_hang);
   return `<div class="kk diff"><div class="row"><div><div class="nm">${esc(vnName(it) || x.ma_hang)}</div>
-    <div class="mut"><span class="code">${esc(x.ma_hang)}</span> · <span class="chip warn" style="margin:0">Hàng thừa ${fmt(x.qty)}</span>${x.nsx ? " · NSX " + esc(x.nsx) : ""}${x.hsd ? " · HSD " + esc(x.hsd) : ""}</div></div>
+    <div class="mut"><span class="code">${esc(x.ma_hang)}</span> · <span class="chip warn" style="margin:0">Hàng thừa ${fmt(x.qty)}</span>${x.vi_tri ? " · 📍 " + esc(x.vi_tri) : ""}${x.nsx ? " · NSX " + esc(x.nsx) : ""}${x.hsd ? " · HSD " + esc(x.hsd) : ""}</div></div>
     <button class="btn bad sm fit" data-k="xdel" data-i="${i}">Xóa</button></div></div>`;
 }
 function kkCount() {
@@ -1386,7 +1402,9 @@ function kkCount() {
   $("#main").innerHTML = `${dlItem()}${dlLoc()}
     <div class="card" style="margin-top:4px"><div class="head">${tbadge(k.loc)}<h3 class="code">${esc(k.loc)}</h3><div class="sp"></div>${S.isAdmin ? `<button class="btn alt sm2 fit" id="krename" style="margin-right:6px">✎ Đổi tên</button>` : ""}<button class="btn ghost sm2 fit" id="kback">‹ Đổi vị trí</button></div>
       ${lname ? `<div class="mut">${esc(lname)}</div>` : ""}
+      ${(k.kids && k.kids.length) ? `<div class="mut" style="margin-top:4px">Đang kiểm <b style="color:var(--ink)">cả pallet</b>: hàng trực tiếp + ${k.kids.length} kiện bên dưới (kiện 1 → ${k.kids.length}).</div>` : ""}
       ${(() => {
+        if (k.kids && k.kids.length) return "";
         const me = S.locs.find(l => l.ma === k.loc) || {}, parent = me.cha;
         const sibs = (parent ? S.locs.filter(l => l.cha === parent) : S.locs.filter(l => l.cha === k.loc)).slice().sort((x, y) => (x.kien || 0) - (y.kien || 0));
         if (!sibs.length) return "";
@@ -1399,7 +1417,16 @@ function kkCount() {
       <div class="stat"><div><span>Mã hàng</span><b>${total}</b></div><div><span>Đã kiểm</span><b>${done}/${total}</b></div>
         <div><span>Lệch</span><b style="color:${diffs ? "var(--bad)" : "var(--ok)"}">${diffs}</b></div></div>
       <div class="pbar ${total && done === total ? "full" : ""}"><i style="width:${total ? 100 * done / total : 0}%"></i></div></div>
-    <div id="kklist">${k.rows.map(kkCard).join("") || `<div class="empty">${S.locs.some(x => x.cha === k.loc) ? "Pallet này không để hàng trực tiếp.<br>Hãy chạm vào <b>từng kiện</b> ở trên để kiểm." : "Vị trí này chưa có hàng trên sổ.<br>Có hàng thì bấm “＋ Hàng thừa” bên dưới."}</div>`}</div>
+    <div id="kklist">${(k.kids && k.kids.length) ? k.locs.map((code, i) => {
+        const rs = k.rows.filter(r => r.vi_tri === code), dn = rs.filter(r => k.marks[r.id]).length;
+        const l = S.locs.find(x => x.ma === code) || {};
+        const th = rs.reduce((q, r) => { const pk = packOf(r.ma_hang, r.sl); return q + (pk ? pk.t : 0); }, 0);
+        return `<div class="sec ${i ? "kien" : ""}"><b>${i ? `📦 KIỆN ${l.kien || i} · ${esc(code)}<br><span class="mut">hàng lẻ trong kiện · ${rs.length} mã${th ? " · " + fmt(th) + " thùng nguyên" : ""}</span>` : `🗂 HÀNG TRỰC TIẾP TRÊN PALLET · ${esc(code)}<br><span class="mut">nguyên thùng / lẻ · ${rs.length} mã${th ? " · " + fmt(th) + " thùng nguyên" : ""}</span>`}</b>
+          <span class="chip ${rs.length && dn === rs.length ? "ok" : "gray"} fit" style="margin:0">${dn}/${rs.length}</span>
+          ${rs.length && dn < rs.length ? `<button class="btn alt" data-k="allsec" data-loc="${esc(code)}">Đủ hết</button>` : ""}</div>
+          ${rs.map(kkCard).join("") || `<div class="mut" style="text-align:center;padding:10px">${i ? "Kiện trống (không có hàng trên sổ)" : "Không có hàng để thẳng trên pallet"}</div>`}`;
+      }).join("")
+      : (k.rows.map(kkCard).join("") || `<div class="empty">Vị trí này chưa có hàng trên sổ.<br>Có hàng thì bấm “＋ Hàng thừa” bên dưới.</div>`)}</div>
     ${k.extras.length ? `<div class="section">Hàng thừa (không có trên sổ)</div><div id="kkex">${k.extras.map(kkExtraCard).join("")}</div>` : ""}
     <div class="row" style="margin-top:10px;gap:8px"><button class="btn alt" id="kextra">＋ Hàng thừa</button>${total - done > 0 ? `<button class="btn ghost" id="kall">Đủ hết (${total - done})</button>` : ""}</div>
     <div class="pad-act"></div>
@@ -1411,6 +1438,11 @@ function kkCount() {
   const list = $("#kklist");
   list.onclick = e => {
     const bt = e.target.closest("[data-k]"); if (!bt) return;
+    if (bt.dataset.k === "allsec") {
+      const rs = k.rows.filter(x => x.vi_tri === bt.dataset.loc && !k.marks[x.id]);
+      if (!rs.length || !confirm(`Xác nhận ĐỦ cho ${rs.length} mã còn lại ở ${bt.dataset.loc}?`)) return;
+      rs.forEach(x => { k.marks[x.id] = { st: "ok", qty: Number(x.sl) }; }); rerender(); return;
+    }
     const id = bt.dataset.id, r = k.rows.find(x => String(x.id) === id); if (!r) return;
     const act = bt.dataset.k, old = k.marks[id] || {};
     if (act === "ok") { k.marks[id] = { ...old, st: "ok", qty: Number(r.sl) }; k.open = null; }
@@ -1483,7 +1515,7 @@ function kkCount() {
     k.rows.forEach(r => { const m = k.marks[r.id]; if (!m) return;
       lines.push({ ma_hang: r.ma_hang, lo: r.lo, nsx: r.nsx, hsd: r.hsd, vi_tri: r.vi_tri, sl_thuc_te: m.qty,
         nsx_moi: m.nsx_moi || "", hsd_moi: m.hsd_moi || "", vi_tri_den: m.den || "" }); });
-    k.extras.forEach(x => lines.push({ ma_hang: x.ma_hang, lo: "", nsx: x.nsx || "", hsd: x.hsd || "", vi_tri: k.loc, sl_thuc_te: x.qty, ghi_chu: "Hàng thừa khi kiểm kê" }));
+    k.extras.forEach(x => lines.push({ ma_hang: x.ma_hang, lo: "", nsx: x.nsx || "", hsd: x.hsd || "", vi_tri: x.vi_tri || k.loc, sl_thuc_te: x.qty, ghi_chu: "Hàng thừa khi kiểm kê" }));
     const so = await submitVoucher($("#ksave"), "KK", "", `Kiểm kê ${k.loc} ngày ${dmy(today())}`, lines, null);
     if (so) {
       try { localStorage.removeItem(KK_PREFIX + k.loc); } catch {}
@@ -1566,6 +1598,7 @@ function sheetRenameLoc() {
 function sheetExtra() {
   sheet(`<h3>＋ Hàng thừa / không có trên sổ</h3><div class="mut" style="margin:2px 0 6px">Hàng thấy ở vị trí ${esc(S.kk.loc)} nhưng sổ sách chưa có</div>
     <label>Mã hàng</label><div class="row"><input id="xm" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên">${scanBtn("xm")}</div><div id="xmp"></div>
+    ${S.kk.locs && S.kk.locs.length > 1 ? `<label>Đặt vào</label><select id="xl">${S.kk.locs.map((c, i) => `<option value="${esc(c)}">${i ? "Kiện " + (((S.locs.find(l => l.ma === c) || {}).kien) || i) + " · " : "Trực tiếp trên pallet · "}${esc(c)}</option>`).join("")}</select>` : ""}
     <label>Số lượng thực tế</label><input id="xq" type="text" data-num autocomplete="off" enterkeyhint="next">
     <div class="grid2"><div><label>Ngày sản xuất</label><input id="xn" type="date"></div><div><label>Hạn sử dụng</label><input id="xh" type="date"></div></div>
     <div id="xauto" class="hintline"></div>
@@ -1577,7 +1610,7 @@ function sheetExtra() {
       const it = itemView($("#xm", el).value), q = Number($("#xq", el).value);
       if (!it) return toast("Mã hàng chưa có trong danh mục.", true);
       if (!(q > 0)) return toast("Nhập số lượng > 0.", true);
-      S.kk.extras.push({ ma_hang: it.ma, qty: q, nsx: $("#xn", el).value, hsd: $("#xh", el).value });
+      S.kk.extras.push({ ma_hang: it.ma, qty: q, vi_tri: ($("#xl", el) || {}).value || S.kk.loc, nsx: $("#xn", el).value, hsd: $("#xh", el).value });
       kkPersist(); close(); kkCount();
     };
   });

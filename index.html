@@ -218,6 +218,62 @@ box-shadow:var(--shadow)}
 .tbl .pr.done{opacity:.55}
 .tbl .pr.done .no{background:var(--ok);color:#fff}
 .tbl .pr.done .nm{text-decoration:line-through}
+/* ===== v21: giao diện gọn, ngón cái với tới ===== */
+:root{--hh:56px}
+header{padding:calc(8px + env(safe-area-inset-top)) 12px 9px}
+header .brand b{font-size:17px}
+header .tb{padding:7px 11px;font-size:15px;min-height:38px}
+.stickybar{position:sticky;top:var(--hh);z-index:6;background:linear-gradient(180deg,var(--bg) 82%,transparent);padding:8px 0 6px;margin:-6px 0 0}
+.sumbar{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mut);margin:10px 4px 6px;font-weight:600}
+.plist{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.pgroup{border-top:1px solid var(--line)}
+.pgroup:first-child{border-top:0}
+.prow{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
+.prow:active{background:var(--tap)}
+.prow .pm{flex:1;min-width:0}
+.prow .pn{font-weight:650;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prow .pc{font-size:12px;color:var(--mut);margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.prow .pq{text-align:right;font-weight:800;font-size:18px;line-height:1.05;flex:none;letter-spacing:-.3px}
+.prow .pq small{display:block;font-size:11px;font-weight:600;color:var(--mut);letter-spacing:0}
+.prow .pq.zero{color:var(--mut)}
+.prow .arr{color:var(--mut);transition:transform .15s;flex:none;font-size:18px}
+.pgroup.open .arr{transform:rotate(90deg)}
+.pdet{display:none;background:var(--tap);padding:2px 12px 8px;border-top:1px dashed var(--line)}
+.pgroup.open .pdet{display:block}
+.pdet .lot{padding:8px 0}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.dot.bad{background:var(--bad)}.dot.warn{background:#f59e0b}
+.actbar{position:fixed;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom));z-index:7;padding:10px 12px 8px;
+background:linear-gradient(180deg,transparent,var(--bg) 38%);pointer-events:none}
+.actbar .btn{pointer-events:auto;width:100%;max-width:736px;margin:0 auto;display:block;font-size:17px;min-height:54px;
+box-shadow:0 10px 26px rgba(11,95,89,.38)}
+.pad-act{height:84px}
+.vday{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:16px 4px 6px}
+.vrow{display:flex;gap:11px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;
+padding:11px 12px;margin:7px 0;box-shadow:var(--shadow);cursor:pointer}
+.vrow:active{background:var(--tap)}
+.vrow .vic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:var(--pri2);flex:none}
+.vrow .vb{flex:1;min-width:0}
+.vrow .vtitle{font-weight:700;font-size:15px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vrow .vmeta{font-size:12px;color:var(--mut);margin-top:2px}
+.vrow .vq{font-weight:800;font-size:15px;text-align:right;flex:none}
+.tplbar{display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tplbar::-webkit-scrollbar{display:none}
+.tpl{flex:none;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+border-radius:999px;padding:9px 14px;font:700 13.5px inherit;min-height:40px}
+.tpl.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.tpl.add{border-style:dashed;color:var(--pri-ink)}
+.tpl .x{opacity:.7;font-size:15px;padding-left:2px}
+.dname{font-weight:800;font-size:17px;text-align:center;margin:6px 0 2px;line-height:1.3}
+.sm2{padding:8px 12px;min-height:38px;font-size:13px;border-radius:10px}
+/* kiểm kê theo vị trí / kiện */
+.kk{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin:10px 0;box-shadow:var(--shadow)}
+.kk.okc{border-color:var(--ok);background:var(--okbg)}
+.kk.diff{border-color:#f59e0b}
+.kk .nm{font-weight:700;font-size:15px;line-height:1.25}
+.kact{display:grid;grid-template-columns:1.1fr 1.25fr 1fr;gap:8px;margin-top:10px}
+.kact .btn{padding:12px 4px;font-size:14.5px;min-height:50px}
+.kmore{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -257,7 +313,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v20";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v22";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -459,24 +515,30 @@ function renderQuickOpen(me) {
 function shell() {
   $("#app").innerHTML = `<header>
     <div class="brand"><b id="title">Kho</b><span id="sub"></span></div>
-    <span class="tb" id="verbadge" style="pointer-events:none;font-weight:700">${APP_VER}</span>
-    <button class="tb" id="install" style="display:none" title="Cài đặt">⬇ Cài</button>
-    <button class="tb" id="ref" title="Tải lại bản mới">⟳</button>
-    <button class="tb" id="out">Thoát</button></header>
+    <button class="tb" id="install" style="display:none" title="Cài app về máy">📲</button>
+    <button class="tb" id="menu" aria-label="Menu">☰</button></header>
     <main id="main"></main>
     <nav>${TABS.map(([k, i, t]) => `<button data-t="${k}"><b>${i}</b>${t}</button>`).join("")}</nav>`;
   $("#sub").textContent = `${S.me.ho_ten || S.me.username} · ${S.isAdmin ? "Quản trị" : "Nhân viên"}`;
   $("#install").style.display = isStandalone() ? "none" : "inline-block";
   $("#install").onclick = doInstall;
-  $("#out").onclick = async () => {
-    if (!confirm("Đăng xuất khỏi Kho Mobile?")) return;
-    await sb.auth.signOut(); S.me = null; S.isAdmin = false; S._shelled = false; localStorage.removeItem(LS_ME); renderLogin(true);
-  };
-  // ⟳ = tải lại BẢN MỚI thật: gỡ service worker cũ + nạp lại trang kèm tham số phá cache
-  $("#ref").onclick = async () => {
-    try { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r => r.unregister())); } catch {}
-    const u = new URL(location.href); u.searchParams.set("r", Date.now()); location.replace(u.toString());
-  };
+  document.documentElement.style.setProperty("--hh", $("header").offsetHeight + "px");
+  $("#menu").onclick = () => sheet(`<h3>${esc(S.me.ho_ten || S.me.username)}</h3>
+      <div class="mut" style="margin:2px 0 12px">${S.isAdmin ? "Quản trị" : "Nhân viên"} · phiên bản ${APP_VER}</div>
+      ${isStandalone() ? "" : `<p><button class="btn alt" id="m-inst" style="width:100%">📲 Cài app về máy</button></p>`}
+      <p><button class="btn ghost" id="m-ref" style="width:100%">⟳ Tải lại bản mới nhất</button></p>
+      <p><button class="btn bad" id="m-out" style="width:100%">Đăng xuất</button></p>`, (el, close) => {
+    if ($("#m-inst", el)) $("#m-inst", el).onclick = () => { close(); doInstall(); };
+    // ⟳ = tải lại BẢN MỚI thật: gỡ service worker cũ + nạp lại trang kèm tham số phá cache
+    $("#m-ref", el).onclick = async () => {
+      try { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r => r.unregister())); } catch {}
+      const u = new URL(location.href); u.searchParams.set("r", Date.now()); location.replace(u.toString());
+    };
+    $("#m-out", el).onclick = async () => {
+      if (!confirm("Đăng xuất khỏi Kho Mobile?")) return;
+      await sb.auth.signOut(); S.me = null; S.isAdmin = false; S._shelled = false; localStorage.removeItem(LS_ME); renderLogin(true);
+    };
+  });
   $$("nav button").forEach(b => b.onclick = () => go(b.dataset.t));
   go(S.tab);
 }
@@ -490,7 +552,6 @@ function refreshCurrent(forceRef) {
   const y = window.scrollY;
   ({ ton: viewStock, nhap: viewReceive, xuat: viewIssue, nhat: viewPickList, kk: viewStocktake, phieu: viewVouchers })[S.tab]();
   if (S.tab !== 'nhat') clearInterval(S.pkListTimer);
-  const sub = $("#sub"); if (sub) sub.textContent = `${sub.textContent} · ${APP_VER}`;
   if (!forceRef) window.scrollTo(0, y); else window.scrollTo(0, 0);
 }
 
@@ -533,18 +594,22 @@ const dlItem = () => `<datalist id="dl-items">${S.items.map(i => `<option value=
 
 // ------------------------------------------------------------------ TAB: Tồn kho
 function viewStock() {
-  $("#title").textContent = "Tồn kho"; $("#sub").textContent = "Tra cứu tồn theo mã / vị trí";
+  $("#title").textContent = "Tồn kho"; $("#sub").textContent = "Chạm vào mã hàng để xem vị trí · Xuất / Chuyển";
   $("#main").innerHTML = `${dlCust()}${dlLoc()}
-    <div class="searchwrap"><input id="q" type="search" placeholder="Mã / tên hàng…" value="${esc(S.q)}" enterkeyhint="search"><button class="clr" id="clr" style="display:${S.q ? "block" : "none"}">×</button></div>
-    <div class="row" style="margin-top:9px"><input id="vt" placeholder="Lọc theo vị trí (tuỳ chọn)" value="${esc(S.viTri)}" autocapitalize="characters" enterkeyhint="search">${scanBtn("vt")}<button class="btn alt fit sm" id="vgo">Lọc</button></div>
-    <div class="seg" style="margin-top:11px">${[["all","Có tồn"],["exp","Sắp hết hạn"],["min","Dưới tối thiểu"]]
-      .map(([k, t]) => `<button data-f="${k}" class="${S.filter === k ? "on" : ""}">${t}</button>`).join("")}</div>
+    <div class="stickybar">
+      <div class="searchwrap row" style="gap:8px"><div class="searchwrap" style="flex:1"><input id="q" type="search" placeholder="Tìm mã / tên hàng…" value="${esc(S.q)}" enterkeyhint="search"><button class="clr" id="clr" style="display:${S.q ? "block" : "none"}">×</button></div>${scanBtn("q")}</div>
+      <div class="row" style="margin-top:8px;gap:8px"><div class="seg" style="flex:1">${[["all","Có tồn"],["exp","Sắp hết hạn"],["min","Thấp"]]
+        .map(([k, t]) => `<button data-f="${k}" class="${S.filter === k ? "on" : ""}">${t}</button>`).join("")}</div>
+        <button class="btn ghost sm2 fit" id="vtog" title="Lọc theo vị trí">📍${S.viTri ? " " + esc(S.viTri) : ""}</button></div>
+      <div class="row" id="vrow" style="margin-top:8px;display:${S.viTri ? "flex" : "none"}"><input id="vt" placeholder="Mã vị trí (VD A001)" value="${esc(S.viTri)}" autocapitalize="characters" enterkeyhint="search">${scanBtn("vt")}<button class="btn alt fit sm" id="vgo">Lọc</button></div>
+    </div>
     <div id="res"></div>`;
   bindScan($("#main"));
-  const onType = debounce(() => { S.offset = 0; S.q ? pickerStock() : loadStock(); }, 200);
+  const onType = debounce(() => { S.offset = 0; loadStock(); }, 250);
   $("#q").oninput = e => { S.q = e.target.value.trim(); const c = $("#clr"); if (c) c.style.display = S.q ? "block" : "none"; onType(); };
   $("#clr").onclick = () => { S.q = ""; S.offset = 0; viewStock(); };
-  $("#vgo").onclick = () => { S.viTri = $("#vt").value.trim().toUpperCase(); S.q = ""; S.offset = 0; loadStock(); };
+  $("#vtog").onclick = () => { const r = $("#vrow"); r.style.display = r.style.display === "none" ? "flex" : "none"; if (r.style.display === "flex") $("#vt").focus(); };
+  $("#vgo").onclick = () => { S.viTri = $("#vt").value.trim().toUpperCase(); S.q = ""; S.offset = 0; viewStock(); };
   $("#vt").onkeydown = e => { if (e.key === "Enter") $("#vgo").click(); };
   $$(".seg button").forEach(b => b.onclick = () => { S.filter = b.dataset.f; S.offset = 0; viewStock(); });
   loadStock();
@@ -589,17 +654,22 @@ async function loadStock(append) {
     S.sums = append ? S.sums.concat(sums) : sums;
     const lots = await must(sb.from("v_stock").select("*").in("ma_hang", sums.map(s => s.ma)).order("hsd").order("vi_tri"));
     lots.forEach(l => (S.by[l.ma_hang] ||= []).push(l));
-    const html = sums.map(s => stockCard(s, S.by[s.ma] || [])).join("");
-    if (append) res.insertAdjacentHTML("beforeend", html); else res.innerHTML = html;
+    const html = sums.map(s => stockRow(s, S.by[s.ma] || [], S.sums.length <= 3)).join("");
+    if (append && $("#plist")) $("#plist").insertAdjacentHTML("beforeend", html);
+    else res.innerHTML = `<div class="sumbar"><span id="cnt"></span><span>${S.filter === "min" ? "Dưới mức tối thiểu" : S.filter === "exp" ? "Sắp hết hạn" : "Đang có tồn"}</span></div><div class="plist" id="plist">${html}</div>`;
+    $("#cnt").textContent = `${S.sums.length} mã hàng`;
     let mEl = $("#more");
     const canMore = (S.filter !== "exp" && !S.viTri && !q) && sums.length >= PAGE;
     if (!mEl) res.insertAdjacentHTML("beforeend", `<div class="more"><button id="more" style="display:none">Tải thêm</button></div>`);
     $("#more").style.display = canMore ? "block" : "none";
     $("#more").onclick = () => { S.offset += PAGE; loadStock(true); };
-    res.querySelectorAll("[data-act]").forEach(b => b.onclick = () => {
-      const lot = lots.find(l => String(l.id) === b.dataset.id); if (!lot) return;
+    res.onclick = e => {
+      const tog = e.target.closest("[data-tog]");
+      if (tog) { tog.parentElement.classList.toggle("open"); return; }
+      const b = e.target.closest("[data-act]"); if (!b) return;
+      const lot = Object.values(S.by).flat().find(l => String(l.id) === b.dataset.id); if (!lot) return;
       b.dataset.act === "xuat" ? sheetIssue(lot) : sheetMove(lot);
-    });
+    };
   } catch (e) { if (!append) res.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   S.loading = false;
 }
@@ -611,16 +681,23 @@ function hsdChip(hsd) {
   if (d <= S.chuyDays) return `<span class="chip">HSD ${esc(hsd)} · ${d}n</span>`;
   return `<span class="chip gray">HSD ${esc(hsd)}</span>`;
 }
-function stockCard(s, lots) {
+function stockRow(s, lots, open) {
   const low = s.ton_toi_thieu > 0 && s.tong < s.ton_toi_thieu;
-  return `<div class="card"><div class="row"><div><h3 class="code">${esc(s.ma)}</h3>
-    <div class="mut">${esc(s.ten)}</div></div><div class="fit tot">${fmt(s.tong)} <span class="mut" style="font-size:12px">${esc(s.dvt)}</span></div></div>
-    ${low ? `<div style="margin-top:6px"><span class="chip bad">Dưới tối thiểu ${fmt(s.ton_toi_thieu)}</span></div>` : ""}
-    ${lots.map(l => `<div class="lot"><div class="info"><div class="vt code">${esc(l.vi_tri || "—")}</div>
-      <div class="mut">${fmt(l.sl)} ${esc(l.dvt || s.dvt || "")}${l.lo ? " · lô " + esc(l.lo) : ""} ${hsdChip(l.hsd)}</div></div>
+  const t0 = today();
+  let worst = "";
+  lots.forEach(l => { if (!l.hsd) return; const d = Math.floor((new Date(l.hsd + "T00:00:00") - new Date(t0 + "T00:00:00")) / 864e5);
+    if (d < 0) worst = "bad"; else if (d <= S.warnDays && worst !== "bad") worst = "warn"; });
+  const it = itemView(s.ma);
+  const where = lots.length ? ` · ${esc(lots[0].vi_tri || "—")}${lots.length > 1 ? " +" + (lots.length - 1) : ""}` : "";
+  return `<div class="pgroup ${open ? "open" : ""}"><div class="prow" data-tog>
+    <div class="pm"><div class="pn">${esc(vnName(it) || s.ten)}</div>
+      <div class="pc">${worst ? `<span class="dot ${worst}"></span>` : ""}<span class="code">${esc(s.ma)}</span>${low ? `<span class="chip bad" style="margin:0">Thấp</span>` : ""}<span>${where}</span></div></div>
+    <div class="pq ${s.tong > 0 ? "" : "zero"}">${fmt(s.tong)}<small>${esc(s.dvt || "")}</small></div><span class="arr">›</span></div>
+    <div class="pdet">${lots.map(l => `<div class="lot"><div class="info"><div class="vt code">${esc(l.vi_tri || "—")}</div>
+      <div class="mut"><b style="color:var(--ink)">${fmt(l.sl)}</b> ${esc(l.dvt || s.dvt || "")}${l.lo ? " · lô " + esc(l.lo) : ""} ${hsdChip(l.hsd)}</div></div>
       <button class="btn ghost sm fit" data-act="chuyen" data-id="${l.id}">Chuyển</button>
       <button class="btn sm fit" data-act="xuat" data-id="${l.id}">Xuất</button></div>`).join("")}
-    ${lots.length ? "" : `<div class="mut" style="margin-top:6px">Chưa có tồn.</div>`}</div>`;
+    ${lots.length ? "" : `<div class="mut" style="padding:8px 0">Chưa có tồn.</div>`}</div></div>`;
 }
 async function submitVoucher(btn, loai, doiTac, ghiChu, lines, done) {
   busy(btn, true, "Đang ghi sổ…");
@@ -773,9 +850,9 @@ function renderOrder() {
       <div class="mut">${esc(nameOf(l.ma_hang))}</div>
       <div class="mut">Tồn ${fmt(S.inStock.get(l.ma_hang) || 0)} → còn lại <b style="color:var(--ok)">${fmt((S.inStock.get(l.ma_hang) || 0) - l.sl)}</b></div></div>
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
-    <div class="grid2" style="margin-top:12px">
-      <button class="btn ghost" id="clr-o">Xóa hết</button>
-      <button class="btn" id="go-o">📤 XUẤT KHO</button></div>`;
+    <button class="btn ghost sm" id="clr-o" style="width:100%;margin-top:10px">Xóa hết</button>
+    <div class="pad-act"></div>
+    <div class="actbar"><button class="btn" id="go-o">📤 XUẤT KHO · ${S.order.length} mặt hàng</button></div>`;
   $$("#order [data-del]").forEach(b => b.onclick = () => { S.order.splice(Number(b.dataset.del), 1); renderOrder(); });
   $("#clr-o").onclick = () => { S.order = []; renderOrder(); };
   $("#go-o").onclick = reviewOrder;
@@ -797,15 +874,47 @@ async function reviewOrder() {
 }
 
 // ------------------------------------------------------------------ TAB: Nhập kho
+const DEF_TPLS = ["Đơn hàng dư", "Hàng trả về", "Nhập từ NCC", "Nhập bù / điều chỉnh", "Hàng mẫu"];
+const TPL_KEY = "kho_tpls";
+const customTpls = () => { try { return JSON.parse(localStorage.getItem(TPL_KEY) || "[]"); } catch { return []; } };
+const saveTpls = a => { try { localStorage.setItem(TPL_KEY, JSON.stringify(a)); } catch {} };
+const dmy = iso => { const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
+S.rcv = S.rcv || { tpl: "", date: today(), title: "" };
+function rcvCompose() { if (S.rcv.tpl) { S.rcv.title = `${S.rcv.tpl} ngày ${dmy(S.rcv.date)}`; const t = $("#rtitle"); if (t) t.value = S.rcv.title; } }
+function renderTpls() {
+  const box = $("#tpls"); if (!box) return;
+  const cus = customTpls();
+  box.innerHTML = DEF_TPLS.map(t => `<button type="button" class="tpl ${S.rcv.tpl === t ? "on" : ""}" data-t="${esc(t)}">${esc(t)}</button>`).join("") +
+    cus.map(t => `<button type="button" class="tpl ${S.rcv.tpl === t ? "on" : ""}" data-t="${esc(t)}">${esc(t)} <span class="x" data-x="${esc(t)}">✕</span></button>`).join("") +
+    `<button type="button" class="tpl add" id="tpl-add">＋ Mẫu mới</button>`;
+  $$(".tpl[data-t]", box).forEach(b => b.onclick = e => {
+    const x = e.target.closest("[data-x]");
+    if (x) { e.stopPropagation(); if (confirm(`Xóa mẫu "${x.dataset.x}"?`)) { saveTpls(customTpls().filter(v => v !== x.dataset.x)); if (S.rcv.tpl === x.dataset.x) S.rcv.tpl = ""; renderTpls(); } return; }
+    S.rcv.tpl = S.rcv.tpl === b.dataset.t ? "" : b.dataset.t;
+    if (!S.rcv.tpl) { S.rcv.title = ""; $("#rtitle").value = ""; } else rcvCompose();
+    renderTpls(); vibrate(10);
+  });
+  $("#tpl-add").onclick = () => {
+    const n = (prompt("Tên mẫu mới (VD: Đơn hàng dư, Hàng đổi trả…)") || "").trim();
+    if (!n) return;
+    if (!DEF_TPLS.includes(n) && !customTpls().includes(n)) saveTpls([...customTpls(), n]);
+    S.rcv.tpl = n; rcvCompose(); renderTpls();
+  };
+}
 function viewReceive() {
-  $("#title").textContent = "Nhập kho"; $("#sub").textContent = "Nhiều dòng trong 1 phiếu";
+  $("#title").textContent = "Nhập kho"; $("#sub").textContent = "Đặt tên phiếu → thêm hàng → Nhập kho";
   $("#main").innerHTML = `${dlItem()}${dlLoc()}
-    <div class="card"><div class="head"><h3>📥 Thêm dòng nhập</h3></div>
+    <div class="card"><div class="head"><h3>📋 Tên phiếu nhập</h3></div>
+    <div class="tplbar" id="tpls"></div>
+    <div class="row" style="margin-top:8px;gap:8px"><input id="rtitle" placeholder="VD: Đơn hàng dư ngày 21/10/2026" value="${esc(S.rcv.title)}" enterkeyhint="done">
+      <input id="rdate" type="date" class="fit" style="max-width:158px" value="${esc(S.rcv.date)}"></div>
+    <div class="row" style="margin-top:8px;gap:8px"><button type="button" class="btn ghost sm2" id="d-today">Hôm nay</button><button type="button" class="btn ghost sm2" id="d-yest">Hôm qua</button></div>
+    <div class="hintline">Chọn mẫu + chọn ngày, hoặc gõ tên tự do. Tên này hiện ở danh sách phiếu và thẻ kho.</div></div>
+    <div class="card"><div class="head"><h3>＋ Thêm hàng vào phiếu</h3></div>
     <label>Mã hàng <span class="req">*</span></label>
-    <div class="row"><input id="ma" autocapitalize="characters" enterkeyhint="next" placeholder="Quét / gõ mã hàng">${scanBtn("ma")}</div>
+    <div class="row"><input id="ma" autocapitalize="characters" enterkeyhint="next" placeholder="Quét / gõ mã hoặc tên hàng">${scanBtn("ma")}</div>
     <div id="ten" class="mut" style="margin-top:5px"></div><div id="picks"></div><div id="recent"></div>
     <label>Số lượng <span class="req">*</span></label><input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num enterkeyhint="next">
-    <label>Ghi chú · nhập của đơn hàng nào</label><input id="gc" enterkeyhint="next" placeholder="VD: PO 12345, đơn Highlands…">
     <div id="nsxbox"><label>Ngày sản xuất <span class="req" id="nsxreq" style="display:none">*</span></label><input id="nsx" type="date"></div>
     <div id="hsdbox"><label>Hạn sử dụng (tuỳ chọn)</label><input id="hsd" type="date"></div>
     <div id="hsdauto" class="stat" style="display:none"></div>
@@ -815,6 +924,11 @@ function viewReceive() {
     <p style="margin-top:14px"><button class="btn alt" id="add" style="width:100%">＋ Thêm vào phiếu</button></p></div>
     <div id="draft"></div>`;
   bindScan($("#main"));
+  renderTpls();
+  $("#rtitle").oninput = e => { S.rcv.title = e.target.value; if (S.rcv.tpl) { S.rcv.tpl = ""; renderTpls(); } };
+  $("#rdate").onchange = e => { S.rcv.date = e.target.value || today(); rcvCompose(); };
+  $("#d-today").onclick = () => { S.rcv.date = today(); $("#rdate").value = S.rcv.date; rcvCompose(); };
+  $("#d-yest").onclick = () => { S.rcv.date = addDays(-1); $("#rdate").value = S.rcv.date; rcvCompose(); };
   $("#ma").oninput = e => {
     const v = e.target.value.trim().toUpperCase(); const it = itemView(v);
     $("#ten").textContent = it ? `${vnName(it)} (${it.dvt || ""})` : "";
@@ -824,8 +938,7 @@ function viewReceive() {
   renderRecent($("#recent"), ma => { $("#ma").value = ma; $("#ma").dispatchEvent(new Event("input")); $("#recent").innerHTML = ""; $("#sl").focus(); }, false);
   $("#nsx").oninput = refreshDates; $("#nsx").onchange = refreshDates;
   refreshDates();
-  $("#sl").onkeydown = e => { if (e.key === "Enter") $("#gc").focus(); };
-  $("#gc").onkeydown = e => { if (e.key === "Enter") $("#vt").focus(); };
+  $("#sl").onkeydown = e => { if (e.key === "Enter") $("#vt").focus(); };
   attachLoc($("#vt"), $("#vtpicks"), () => $("#add").focus());
   $("#add").onclick = addDraft; renderDraft();
 }
@@ -858,10 +971,10 @@ function addDraft() {
     if (!$("#nsx").value) return toast(`Mã này có hạn dùng ${days} ngày – hãy nhập ngày sản xuất.`, true);
     hsdVal = addDaysIso($("#nsx").value, days);
   }
-  S.draft.push({ ma_hang: ma, sl, ghi_chu: $("#gc").value.trim(), nsx: $("#nsx").value, hsd: hsdVal,
+  S.draft.push({ ma_hang: ma, sl, nsx: $("#nsx").value, hsd: hsdVal,
                  vi_tri: $("#vt").value.trim().toUpperCase() });
   pushRecent(ma); vibrate(15);
-  ["#ma", "#sl", "#nsx", "#hsd", "#vt"].forEach(s => $(s).value = "");   // giữ ghi chú: các mã cùng 1 đơn hàng khỏi gõ lại
+  ["#ma", "#sl", "#nsx", "#hsd", "#vt"].forEach(s => $(s).value = "");
   $("#ten").textContent = ""; $("#picks").innerHTML = ""; $("#vtpicks").innerHTML = ""; refreshDates();
   renderRecent($("#recent"), m2 => { $("#ma").value = m2; $("#ma").dispatchEvent(new Event("input")); $("#recent").innerHTML = ""; $("#sl").focus(); }, false);
   renderDraft(); toast("Đã thêm dòng."); $("#ma").focus();
@@ -869,107 +982,270 @@ function addDraft() {
 function renderDraft() {
   const d = $("#draft"); if (!d) return;
   if (!S.draft.length) { d.innerHTML = ""; return; }
-  d.innerHTML = `<div class="card"><div class="head"><h3>Phiếu nháp · ${S.draft.length} dòng</h3></div>
-    ${S.draft.map((l, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(l.ma_hang)} · ${fmt(l.sl)}</div>
-      <div class="mut">${esc(nameOf(l.ma_hang))}${l.nsx ? " · NSX " + esc(l.nsx) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · 📍 " + esc(l.vi_tri) : " · chưa xếp"}</div>${l.ghi_chu ? `<div class="mut">📝 ${esc(l.ghi_chu)}</div>` : ""}</div>
+  const total = S.draft.reduce((a, l) => a + Number(l.sl), 0);
+  d.innerHTML = `<div class="card"><div class="head"><h3>Phiếu đang lập · ${S.draft.length} dòng · SL ${fmt(total)}</h3></div>
+    ${S.draft.map((l, i) => `<div class="lot"><div class="info"><div class="vt">${esc(nameOf(l.ma_hang))}</div>
+      <div class="mut"><span class="code">${esc(l.ma_hang)}</span> · <b style="color:var(--ink)">${fmt(l.sl)}</b>${l.nsx ? " · NSX " + esc(l.nsx) : ""}${l.hsd ? " · HSD " + esc(l.hsd) : ""}${l.vi_tri ? " · 📍 " + esc(l.vi_tri) : " · chưa xếp"}</div></div>
       <button class="btn bad sm fit" data-del="${i}">Xóa</button></div>`).join("")}
-    <label>Nhà cung cấp (tuỳ chọn)</label><input id="dg" enterkeyhint="done" placeholder="Tuỳ chọn">
-    <p style="margin-top:14px"><button class="btn" id="post" style="width:100%">✔ NHẬP KHO</button></p></div>`;
+    <label>Nhà cung cấp (tuỳ chọn)</label><input id="dg" enterkeyhint="done" placeholder="Tuỳ chọn"></div>
+    <div class="pad-act"></div>
+    <div class="actbar"><button class="btn" id="post">📥 NHẬP KHO · ${S.draft.length} dòng</button></div>`;
   $$("#draft [data-del]").forEach(b => b.onclick = () => { S.draft.splice(Number(b.dataset.del), 1); renderDraft(); });
   $("#post").onclick = () => {
-    const lines = S.draft.map(l => ({ ma_hang: l.ma_hang, lo: "", nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl: l.sl, ghi_chu: l.ghi_chu || "" }));
-    submitVoucher($("#post"), "NHAP", $("#dg").value, "", lines, () => { S.draft = []; refreshRef(true); viewReceive(); });
+    const title = (S.rcv.title || "").trim() || `Nhập kho ngày ${dmy(today())}`;
+    const lines = S.draft.map(l => ({ ma_hang: l.ma_hang, lo: "", nsx: l.nsx, hsd: l.hsd, vi_tri: l.vi_tri, sl: l.sl, ghi_chu: title }));
+    submitVoucher($("#post"), "NHAP", ($("#dg") || {}).value || "", title, lines, () => {
+      S.draft = []; S.rcv = { tpl: "", date: today(), title: "" }; refreshRef(true); viewReceive();
+    });
   };
 }
 
-// ------------------------------------------------------------------ TAB: Kiểm kê
-function viewStocktake() {
-  $("#title").textContent = "Kiểm kê"; $("#sub").textContent = "Nhiều vị trí trong 1 phiếu";
-  const k = S.kk;
-  $("#main").innerHTML = `${dlLoc()}
-    <div class="card"><div class="head"><h3>✅ Vị trí đang kiểm (${k.vts.length})</h3><div class="sp"></div>
-    ${k.vts.length ? `<button class="btn ghost sm fit" id="clear">Xoá</button>` : ""}</div>
-    <label>Thêm vị trí</label>
-    <div class="row"><input id="vt" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">
-      <button class="btn alt fit" type="button" id="scanvt">📷</button><button class="btn fit" type="button" id="addvt">＋</button></div>
-    <div id="vtpicks"></div>
-    <div class="filters">${k.vts.map(v => `<button class="on">${esc(v)}</button>`).join("")}</div>
-    ${k.vts.length ? `<p style="margin-top:12px"><button class="btn alt" id="load" style="width:100%">⬇ Tải hàng của các vị trí này</button></p>` : ""}</div>
-    <div id="kk"></div>`;
-  const addLoc = v => { v = (v || "").trim().toUpperCase(); if (!v) return; if (!k.vts.includes(v)) k.vts.push(v); viewStocktake(); };
-  attachLoc($("#vt"), $("#vtpicks"), addLoc);
-  $("#addvt").onclick = () => addLoc($("#vt").value);
-  $("#scanvt").onclick = () => scanInto($("#vt"), addLoc);
-  $("#vt").onkeydown = e => { if (e.key === "Enter") addLoc($("#vt").value); };
-  if ($("#clear")) $("#clear").onclick = () => { S.kk = { vts: [], locs: {}, confirmed: false }; viewStocktake(); };
-  if ($("#load")) $("#load").onclick = loadKK;
-  if (k.confirmed && Object.keys(k.locs).length) renderKK();
-}
-async function loadKK() {
-  const k = S.kk; if (!k.vts.length) return;
-  const box = $("#kk"); box.innerHTML = `<div class="empty">Đang tải…</div>`;
+// ------------------------------------------------------------------ TAB: Kiểm kê (1 vị trí / kiện mỗi lần)
+// Mỗi mã: bấm ĐỦ nếu đúng sổ sách · nhập số thực tế nếu lệch · Không có · đổi NSX/HSD · chuyển sang kiện khác.
+const KK_PREFIX = "kho_kk_";
+S.kk = { loc: "", rows: [], marks: {}, extras: [], open: null };
+function kkLoadSaved(loc) { try { return JSON.parse(localStorage.getItem(KK_PREFIX + loc) || "null"); } catch { return null; } }
+function kkPersist() {   // lưu tạm trên máy: lỡ tắt app / mất mạng không mất phần đã kiểm
+  const k = S.kk; if (!k.loc) return;
   try {
-    const rows = await must(sb.from("v_stock").select("*").in("vi_tri", k.vts).order("vi_tri").order("ma_hang"));
-    k.locs = {}; rows.forEach(r => (k.locs[r.vi_tri] ||= []).push(r));
-    const none = k.vts.filter(v => !k.locs[v]); k.confirmed = true; renderKK();
-    if (none.length) toast(`Vị trí không có hàng: ${none.join(", ")}`);
-  } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+    if (Object.keys(k.marks).length || k.extras.length) localStorage.setItem(KK_PREFIX + k.loc, JSON.stringify({ marks: k.marks, extras: k.extras }));
+    else localStorage.removeItem(KK_PREFIX + k.loc);
+  } catch {}
 }
-function renderKK() {
-  const k = S.kk, box = $("#kk"); if (!box) return;
-  const vts = k.vts.filter(v => k.locs[v]);
-  if (!vts.length) { box.innerHTML = `<div class="empty">Các vị trí này không có hàng trong sổ.</div>`; return; }
-  box.innerHTML = vts.map(vt => `<div class="card"><div class="head"><h3 class="code">📦 ${esc(vt)}</h3></div>
-    ${k.locs[vt].map((r, i) => `<div class="lot"><div class="info"><div class="vt code">${esc(r.ma_hang)}</div>
-      <div class="mut">${esc(r.ten)}${r.lo ? " · lô " + esc(r.lo) : ""}${r.hsd ? " · HSD " + esc(r.hsd) : ""}</div></div>
-      <div class="fit" style="text-align:right"><div class="mut">Sổ sách</div><b>${fmt(r.sl)}</b></div></div>
-      <div class="row" style="margin:6px 0 2px"><input type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num data-vt="${esc(vt)}" data-i="${i}" placeholder="Thực tế (mặc định ${fmt(r.sl)})">
-      <button class="btn alt sm fit" data-same data-vt="${esc(vt)}" data-i="${i}">= sổ</button></div>`).join("")}</div>`).join("") +
-    `<p style="margin-top:12px"><button class="btn" id="save" style="width:100%">✔ Ghi biên bản kiểm kê</button></p>`;
-  const findInput = (vt, i) => $$("#kk input[data-i]").find(x => x.dataset.vt === vt && x.dataset.i === String(i));
-  $$("#kk [data-same]").forEach(b => b.onclick = () => { const r = k.locs[b.dataset.vt][Number(b.dataset.i)]; const inp = findInput(b.dataset.vt, b.dataset.i); if (inp) inp.value = r.sl; });
-  $("#save").onclick = () => {
-    const lines = [];
-    vts.forEach(vt => k.locs[vt].forEach((r, i) => {
-      const inp = findInput(vt, i); const raw = inp ? inp.value.trim() : "";
-      const thucte = raw === "" ? Number(r.sl) : Number(raw);
-      lines.push({ ma_hang: r.ma_hang, lo: r.lo, nsx: r.nsx, hsd: r.hsd, vi_tri: r.vi_tri, sl_thuc_te: thucte });
-    }));
-    if (!lines.length) return toast("Chưa có dòng nào.", true);
-    submitVoucher($("#save"), "KK", "", `Kiểm kê ${vts.join(", ")}`, lines, () => { S.kk = { vts: [], locs: {}, confirmed: false }; viewStocktake(); });
+function viewStocktake() {
+  $("#title").textContent = "Kiểm kê";
+  if (S.kk.loc) return kkCount();
+  $("#sub").textContent = "Chọn 1 vị trí / kiện cần kiểm";
+  $("#main").innerHTML = `${dlLoc()}
+    <div class="card"><div class="head"><h3>📦 Kiểm kê theo vị trí / kiện</h3></div>
+    <label>Quét hoặc gõ mã vị trí</label>
+    <div class="row"><input id="vt" autocapitalize="characters" enterkeyhint="go" placeholder="VD: A001" autofocus><button class="btn alt fit" type="button" id="kscan">📷</button></div>
+    <div id="vtpicks"></div></div>
+    <p class="hintline">Chọn vị trí là <b>tự mở và cập nhật</b> hàng đang có ở đó. Với từng mã: bấm <b>ĐỦ</b> nếu đúng, nhập <b>số thực tế</b> nếu lệch, hoặc <b>Không có</b>. Có thể đổi NSX/HSD hoặc chuyển mã sang kiện khác ngay lúc kiểm. Xong bấm <b>Ghi kiểm kê</b>.</p>`;
+  attachLoc($("#vt"), $("#vtpicks"), v => kkOpen(v));
+  $("#kscan").onclick = () => scanInto($("#vt"), v => kkOpen(v));
+  $("#vt").onkeydown = e => { if (e.key === "Enter") kkOpen($("#vt").value); };
+  setTimeout(() => { const i = $("#vt"); if (i) i.focus(); }, 50);
+}
+async function kkOpen(raw) {
+  const loc = String(raw || "").trim().toUpperCase();
+  if (!loc) return toast("Nhập mã vị trí.", true);
+  try {
+    const rows = await must(sb.from("v_stock").select("*").eq("vi_tri", loc).order("ma_hang").order("hsd"));
+    if (!rows.length && !S.locs.some(l => l.ma === loc)) { toast(`Vị trí ${loc} chưa có trong hệ thống.`, true); return; }
+    const saved = kkLoadSaved(loc), ids = new Set(rows.map(r => String(r.id)));
+    S.kk = { loc, rows, marks: {}, extras: [], open: null };
+    if (saved) {
+      Object.entries(saved.marks || {}).forEach(([id, m]) => { if (ids.has(id)) S.kk.marks[id] = m; });
+      S.kk.extras = saved.extras || [];
+      if (Object.keys(S.kk.marks).length) toast("Đã khôi phục phần kiểm trước đó của vị trí này.");
+    }
+    kkCount();
+  } catch (e) { toast(e.message, true); }
+}
+const kkDiff = (r, m) => (m ? Number(m.qty) - Number(r.sl) : 0);
+function kkCard(r) {
+  const k = S.kk, m = k.marks[r.id], it = itemView(r.ma_hang), d = kkDiff(r, m);
+  const stTxt = !m ? "" : m.st === "none" ? `<span class="chip bad">Không có · −${fmt(r.sl)}</span>`
+    : Math.abs(d) < 1e-9 ? `<span class="chip ok">✓ Đủ ${fmt(r.sl)}</span>`
+    : d < 0 ? `<span class="chip warn">Thiếu ${fmt(-d)} · thực tế ${fmt(m.qty)}</span>` : `<span class="chip warn">Thừa ${fmt(d)} · thực tế ${fmt(m.qty)}</span>`;
+  const extra = m ? `${m.hsd_moi || m.nsx_moi ? `<span class="chip">📅 ${m.nsx_moi ? "NSX " + esc(m.nsx_moi) + " " : ""}${m.hsd_moi ? "HSD " + esc(m.hsd_moi) : ""}</span>` : ""}${m.den ? `<span class="chip">→ ${esc(m.den)}</span>` : ""}` : "";
+  const open = k.open && k.open.id === String(r.id) ? k.open.mode : "";
+  const days = Number(it && it.han_dung) || 0;
+  const cls = !m ? "" : (m.st === "none" || Math.abs(d) > 1e-9 ? "diff" : "okc");
+  return `<div class="kk ${cls}"><div class="row" style="align-items:flex-start"><div>
+      <div class="nm">${esc(vnName(it) || r.ten)}</div>
+      <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${r.lo ? " · lô " + esc(r.lo) : ""} ${hsdChip(r.hsd)}</div></div>
+      <div class="fit" style="text-align:right"><div class="mut">Sổ sách</div><div class="tot">${fmt(r.sl)}</div><div class="mut">${esc(r.dvt || "")}</div></div></div>
+    ${stTxt || extra ? `<div style="margin-top:6px">${stTxt}${extra}</div>` : ""}
+    <div class="kact"><button class="btn ok" data-k="ok" data-id="${r.id}">✓ ĐỦ</button>
+      <button class="btn ghost" data-k="edit" data-id="${r.id}">✎ Số thực tế</button>
+      <button class="btn bad" data-k="none" data-id="${r.id}">Không có</button></div>
+    ${open === "edit" ? `<div class="row" style="margin-top:8px"><input id="kq-${r.id}" type="text" data-num autocomplete="off" placeholder="Số lượng thực tế" value="${m ? m.qty : r.sl}" enterkeyhint="done"><button class="btn fit" data-k="applyq" data-id="${r.id}">OK</button></div>` : ""}
+    <div class="kmore"><button class="btn ghost sm2" data-k="dates" data-id="${r.id}">📅 Đổi NSX / HSD</button>
+      <button class="btn ghost sm2" data-k="move" data-id="${r.id}">↦ Chuyển kiện khác</button>
+      ${m ? `<button class="btn ghost sm2" data-k="reset" data-id="${r.id}">↺ Hủy</button>` : ""}</div>
+    ${open === "dates" ? `<div class="grid2" style="margin-top:6px"><div><label>NSX</label><input type="date" id="kn-${r.id}" value="${esc((m && m.nsx_moi) || r.nsx || "")}" data-days="${days}"></div>
+      <div><label>HSD</label><input type="date" id="kh-${r.id}" value="${esc((m && m.hsd_moi) || r.hsd || "")}"></div></div>
+      <p style="margin-top:8px"><button class="btn sm" data-k="applyd" data-id="${r.id}" style="width:100%">Lưu ngày</button></p>
+      ${days ? `<div class="hintline">Mã này hạn dùng ${days} ngày: đổi NSX thì HSD tự tính.</div>` : ""}` : ""}
+    ${open === "move" ? `<label>Chuyển sang vị trí / kiện</label><div class="row"><input id="km-${r.id}" autocapitalize="characters" placeholder="Quét / gõ mã vị trí" value="${esc((m && m.den) || "")}"><button class="btn alt fit" type="button" data-k="mscan" data-id="${r.id}">📷</button></div><div id="kmp-${r.id}"></div>` : ""}
+  </div>`;
+}
+function kkExtraCard(x, i) {
+  const it = itemView(x.ma_hang);
+  return `<div class="kk diff"><div class="row"><div><div class="nm">${esc(vnName(it) || x.ma_hang)}</div>
+    <div class="mut"><span class="code">${esc(x.ma_hang)}</span> · <span class="chip warn" style="margin:0">Hàng thừa ${fmt(x.qty)}</span>${x.nsx ? " · NSX " + esc(x.nsx) : ""}${x.hsd ? " · HSD " + esc(x.hsd) : ""}</div></div>
+    <button class="btn bad sm fit" data-k="xdel" data-i="${i}">Xóa</button></div></div>`;
+}
+function kkCount() {
+  const k = S.kk;
+  $("#sub").textContent = `Đang kiểm vị trí ${k.loc}`;
+  const total = k.rows.length, done = k.rows.filter(r => k.marks[r.id]).length;
+  const diffs = k.rows.filter(r => { const m = k.marks[r.id]; return m && (m.st === "none" || Math.abs(kkDiff(r, m)) > 1e-9); }).length + k.extras.length;
+  const cnt = done + k.extras.length;
+  const lname = locName(S.locs.find(l => l.ma === k.loc));
+  $("#main").innerHTML = `${dlItem()}${dlLoc()}
+    <div class="card" style="margin-top:4px"><div class="head"><h3 class="code">📦 ${esc(k.loc)}</h3><div class="sp"></div><button class="btn ghost sm2 fit" id="kback">‹ Đổi vị trí</button></div>
+      ${lname ? `<div class="mut">${esc(lname)}</div>` : ""}
+      <div class="stat"><div><span>Mã hàng</span><b>${total}</b></div><div><span>Đã kiểm</span><b>${done}/${total}</b></div>
+        <div><span>Lệch</span><b style="color:${diffs ? "var(--bad)" : "var(--ok)"}">${diffs}</b></div></div>
+      <div class="pbar ${total && done === total ? "full" : ""}"><i style="width:${total ? 100 * done / total : 0}%"></i></div></div>
+    <div id="kklist">${k.rows.map(kkCard).join("") || `<div class="empty">Vị trí này chưa có hàng trên sổ.<br>Có hàng thì bấm “＋ Hàng thừa” bên dưới.</div>`}</div>
+    ${k.extras.length ? `<div class="section">Hàng thừa (không có trên sổ)</div><div id="kkex">${k.extras.map(kkExtraCard).join("")}</div>` : ""}
+    <div class="row" style="margin-top:10px;gap:8px"><button class="btn alt" id="kextra">＋ Hàng thừa</button>${total - done > 0 ? `<button class="btn ghost" id="kall">Đủ hết (${total - done})</button>` : ""}</div>
+    <div class="pad-act"></div>
+    <div class="actbar"><button class="btn" id="ksave" ${cnt ? "" : "disabled"}>✔ GHI KIỂM KÊ · ${cnt} mã${diffs ? " · " + diffs + " lệch" : ""}</button></div>`;
+  $("#kback").onclick = () => { kkPersist(); S.kk = { loc: "", rows: [], marks: {}, extras: [], open: null }; viewStocktake(); };
+  const rerender = () => { kkPersist(); const y = window.scrollY; kkCount(); window.scrollTo(0, y); };
+  const list = $("#kklist");
+  list.onclick = e => {
+    const bt = e.target.closest("[data-k]"); if (!bt) return;
+    const id = bt.dataset.id, r = k.rows.find(x => String(x.id) === id); if (!r) return;
+    const act = bt.dataset.k, old = k.marks[id] || {};
+    if (act === "ok") { k.marks[id] = { ...old, st: "ok", qty: Number(r.sl) }; k.open = null; }
+    else if (act === "none") { k.marks[id] = { ...old, st: "none", qty: 0 }; k.open = null; }
+    else if (act === "reset") { delete k.marks[id]; k.open = null; }
+    else if (act === "edit" || act === "dates" || act === "move") {
+      const mode = act; k.open = k.open && k.open.id === id && k.open.mode === mode ? null : { id, mode };
+    }
+    else if (act === "applyq") {
+      const raw = ($(`#kq-${id}`) || {}).value || "", v = Number(raw);
+      if (raw.trim() === "" || !(v >= 0)) return toast("Nhập số lượng thực tế (từ 0 trở lên).", true);
+      k.marks[id] = { ...old, st: v === 0 ? "none" : (Math.abs(v - Number(r.sl)) < 1e-9 ? "ok" : "diff"), qty: v }; k.open = null;
+    }
+    else if (act === "applyd") {
+      const nsx = $(`#kn-${id}`).value, hsd = $(`#kh-${id}`).value;
+      const base = k.marks[id] || { st: "ok", qty: Number(r.sl) };
+      k.marks[id] = { ...base, nsx_moi: nsx && nsx !== (r.nsx || "") ? nsx : "", hsd_moi: hsd && hsd !== (r.hsd || "") ? hsd : "" }; k.open = null;
+    }
+    else if (act === "mscan") { scanInto($(`#km-${id}`), v => applyMove(id, v)); return; }
+    rerender();
+    if (act === "edit" && k.open) setTimeout(() => { const i = $(`#kq-${id}`); if (i) { i.focus(); i.select(); } }, 60);
+    if (act === "move" && k.open) wireMove(id);
   };
+  const applyMove = (id, v) => {
+    const den = String(v || "").trim().toUpperCase(), r = k.rows.find(x => String(x.id) === id);
+    if (!den || den === k.loc) return toast("Chọn vị trí khác vị trí đang kiểm.", true);
+    const base = k.marks[id] || { st: "ok", qty: Number(r.sl) };
+    k.marks[id] = { ...base, den }; k.open = null; toast(`Sẽ chuyển sang ${den} khi ghi kiểm kê`); rerender();
+  };
+  function wireMove(id) {
+    const inp = $(`#km-${id}`), box = $(`#kmp-${id}`); if (!inp) return;
+    attachLoc(inp, box, v => applyMove(id, v));
+    inp.onkeydown = e => { if (e.key === "Enter") applyMove(id, inp.value); };
+    inp.focus();
+  }
+  list.onkeydown = e => {
+    if (e.key !== "Enter" || !e.target.id || !e.target.id.startsWith("kq-")) return;
+    const bt = $(`[data-k="applyq"][data-id="${e.target.id.slice(3)}"]`, list); if (bt) bt.click();
+  };
+  list.onchange = e => {   // đổi NSX -> HSD tự tính theo số ngày hạn dùng của mã
+    const t = e.target; if (!t.id || !t.id.startsWith("kn-")) return;
+    const days = Number(t.dataset.days) || 0, h = $(`#kh-${t.id.slice(3)}`);
+    if (days > 0 && t.value && h) h.value = addDaysIso(t.value, days);
+  };
+  if (k.open && k.open.mode === "move") wireMove(k.open.id);
+  const ex = $("#kkex");
+  if (ex) ex.onclick = e => { const bt = e.target.closest('[data-k="xdel"]'); if (!bt) return; k.extras.splice(Number(bt.dataset.i), 1); rerender(); };
+  $("#kextra").onclick = () => sheetExtra();
+  if ($("#kall")) $("#kall").onclick = () => {
+    const n = k.rows.filter(r => !k.marks[r.id]).length;
+    if (!confirm(`Xác nhận ĐỦ cho ${n} mã còn lại ở ${k.loc}?`)) return;
+    k.rows.forEach(r => { if (!k.marks[r.id]) k.marks[r.id] = { st: "ok", qty: Number(r.sl) }; }); rerender();
+  };
+  $("#ksave").onclick = async () => {
+    const left = total - done;
+    if (left > 0 && !confirm(`Còn ${left} mã chưa kiểm sẽ được bỏ qua (giữ nguyên sổ sách). Vẫn ghi kiểm kê?`)) return;
+    const lines = [];
+    k.rows.forEach(r => { const m = k.marks[r.id]; if (!m) return;
+      lines.push({ ma_hang: r.ma_hang, lo: r.lo, nsx: r.nsx, hsd: r.hsd, vi_tri: r.vi_tri, sl_thuc_te: m.qty,
+        nsx_moi: m.nsx_moi || "", hsd_moi: m.hsd_moi || "", vi_tri_den: m.den || "" }); });
+    k.extras.forEach(x => lines.push({ ma_hang: x.ma_hang, lo: "", nsx: x.nsx || "", hsd: x.hsd || "", vi_tri: k.loc, sl_thuc_te: x.qty, ghi_chu: "Hàng thừa khi kiểm kê" }));
+    const so = await submitVoucher($("#ksave"), "KK", "", `Kiểm kê ${k.loc} ngày ${dmy(today())}`, lines, null);
+    if (so) {
+      try { localStorage.removeItem(KK_PREFIX + k.loc); } catch {}
+      S.kk = { loc: "", rows: [], marks: {}, extras: [], open: null };
+      refreshRef(true); viewStocktake(); voucherDetail(so);
+    }
+  };
+}
+function sheetExtra() {
+  sheet(`<h3>＋ Hàng thừa / không có trên sổ</h3><div class="mut" style="margin:2px 0 6px">Hàng thấy ở vị trí ${esc(S.kk.loc)} nhưng sổ sách chưa có</div>
+    <label>Mã hàng</label><div class="row"><input id="xm" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên">${scanBtn("xm")}</div><div id="xmp"></div>
+    <label>Số lượng thực tế</label><input id="xq" type="text" data-num autocomplete="off" enterkeyhint="next">
+    <div class="grid2"><div><label>Ngày sản xuất</label><input id="xn" type="date"></div><div><label>Hạn sử dụng</label><input id="xh" type="date"></div></div>
+    <div id="xauto" class="hintline"></div>
+    <p style="margin-top:12px"><button class="btn" id="xok" style="width:100%">Thêm vào kiểm kê</button></p>`, (el, close) => {
+    const days = () => Number((itemView($("#xm", el).value) || {}).han_dung) || 0;
+    $("#xm", el).oninput = e => { renderItemSuggest($("#xmp", el), e.target.value, ma => { $("#xm", el).value = ma; $("#xm", el).dispatchEvent(new Event("input")); $("#xq", el).focus(); }); const d = days(); $("#xauto", el).textContent = d ? `Mã này hạn dùng ${d} ngày: nhập NSX thì HSD tự tính.` : ""; };
+    $("#xn", el).onchange = () => { const d = days(); if (d && $("#xn", el).value) $("#xh", el).value = addDaysIso($("#xn", el).value, d); };
+    $("#xok", el).onclick = () => {
+      const it = itemView($("#xm", el).value), q = Number($("#xq", el).value);
+      if (!it) return toast("Mã hàng chưa có trong danh mục.", true);
+      if (!(q > 0)) return toast("Nhập số lượng > 0.", true);
+      S.kk.extras.push({ ma_hang: it.ma, qty: q, nsx: $("#xn", el).value, hsd: $("#xh", el).value });
+      kkPersist(); close(); kkCount();
+    };
+  });
 }
 
 // ------------------------------------------------------------------ TAB: Phiếu + phiếu lấy hàng
 const LOAI_NAME = { NHAP: "Nhập", XUAT: "Xuất", CHUYEN: "Chuyển", KK: "Kiểm kê", DOI: "Đổi hàng" };
 const LOAI_ICON = { NHAP: "📥", XUAT: "📤", CHUYEN: "🔀", KK: "✅", DOI: "🔄" };
 function viewVouchers() {
-  $("#title").textContent = "Phiếu"; $("#sub").textContent = "Bấm phiếu để xem chi tiết / lấy hàng";
-  $("#main").innerHTML = `<div class="seg">${[["all","Tất cả"],["XUAT","Xuất"],["NHAP","Nhập"],["CHUYEN","Chuyển"],["KK","Kiểm kê"]]
+  $("#title").textContent = "Phiếu"; $("#sub").textContent = "Mới nhất ở trên · bấm phiếu để xem chi tiết";
+  $("#main").innerHTML = `<div class="stickybar"><div class="seg">${[["all","Tất cả"],["NHAP","Nhập"],["XUAT","Xuất"],["CHUYEN","Chuyển"],["KK","Kiểm kê"]]
       .map(([k, t]) => `<button data-f="${k}" class="${S.vFilter === k ? "on" : ""}">${t}</button>`).join("")}</div>
+    <div class="searchwrap" style="margin-top:8px"><input id="vq" type="search" placeholder="Tìm tên phiếu / số phiếu…" enterkeyhint="search"></div></div>
     <div id="vs"></div>`;
   $$(".seg button").forEach(b => b.onclick = () => { S.vFilter = b.dataset.f; S.vOffset = 0; viewVouchers(); });
+  $("#vq").oninput = e => {
+    const q = e.target.value.trim().toLowerCase();
+    $$("#vs .vrow").forEach(r => { r.style.display = !q || r.dataset.s.includes(q) ? "" : "none"; });
+    $$("#vs .vday").forEach(h => { let n = h.nextElementSibling, any = false; while (n && n.classList.contains("vrow")) { if (n.style.display !== "none") any = true; n = n.nextElementSibling; } h.style.display = any ? "" : "none"; });
+  };
+  S.vAll = [];
   loadVouchers(false);
+}
+const vTitle = v => v.ghi_chu || v.doi_tac || `${LOAI_NAME[v.loai] || v.loai} ${v.so}`;
+function dayLabel(iso) {
+  if (iso === today()) return "Hôm nay";
+  if (iso === addDays(-1)) return "Hôm qua";
+  return dmy(iso);
+}
+function renderVouchers() {
+  const box = $("#vs"); if (!box) return;
+  let html = "", cur = "";
+  S.vAll.forEach(v => {
+    if (v.ngay !== cur) { cur = v.ngay; html += `<div class="vday">${esc(dayLabel(v.ngay))}</div>`; }
+    const n = (v.voucher_lines && v.voucher_lines[0] && v.voucher_lines[0].count) || 0;
+    const hh = String(v.created_at || "").slice(11, 16);
+    const draft = v.trang_thai && v.trang_thai !== "Đã ghi sổ";
+    html += `<div class="vrow" data-so="${esc(v.so)}" data-s="${esc((vTitle(v) + " " + v.so + " " + (v.nguoi_lap || "")).toLowerCase())}">
+      <div class="vic">${LOAI_ICON[v.loai] || "🧾"}</div>
+      <div class="vb"><div class="vtitle">${esc(vTitle(v))}</div>
+        <div class="vmeta">${esc(LOAI_NAME[v.loai] || v.loai)} · <span class="code">${esc(v.so)}</span>${hh ? " · " + esc(hh) : ""} · ${esc(v.nguoi_lap || "")}</div></div>
+      ${draft ? `<span class="chip warn fit">${esc(v.trang_thai)}</span>` : (n ? `<div class="vq">${n}<div class="mut" style="font-weight:600">dòng</div></div>` : "")}</div>`;
+  });
+  box.innerHTML = (html || `<div class="empty">Chưa có phiếu.</div>`) + (S.vMore ? `<div class="more"><button id="moreV">Tải thêm</button></div>` : "");
+  if ($("#moreV")) $("#moreV").onclick = () => { S.vOffset += 40; loadVouchers(true); };
+  $$("#vs [data-so]").forEach(c => c.onclick = () => voucherDetail(c.dataset.so));
 }
 async function loadVouchers(append) {
   const box = $("#vs"); if (!box) return;
   if (!append) box.innerHTML = `<div class="empty">Đang tải…</div>`;
   try {
-    let qq = sb.from("vouchers").select("*").order("created_at", { ascending: false }).range(S.vOffset, S.vOffset + 39);
-    if (S.vFilter !== "all") qq = qq.eq("loai", S.vFilter);
-    const vs = await must(qq);
-    const html = vs.map(v => `<div class="card" data-so="${esc(v.so)}" style="padding:12px"><div class="row"><div>
-      <h3>${LOAI_ICON[v.loai] || "🧾"} ${esc(LOAI_NAME[v.loai] || v.loai)} · <span class="code">${esc(v.so)}</span></h3>
-      <div class="mut">${esc(v.ngay)} · ${esc(v.nguoi_lap || "")}</div>
-      <div class="mut">${esc(v.doi_tac || v.ghi_chu || "")}</div></div>
-      <span class="chip ${v.trang_thai === "Đã ghi sổ" ? "ok" : "warn"} fit">${esc(v.trang_thai || "")}</span></div></div>`).join("");
-    if (append) box.insertAdjacentHTML("beforeend", html); else box.innerHTML = html || `<div class="empty">Chưa có phiếu.</div>`;
-    let mEl = $("#moreV");
-    if (vs.length >= 40) {
-      if (!mEl) box.insertAdjacentHTML("beforeend", `<div class="more"><button id="moreV">Tải thêm</button></div>`);
-      $("#moreV").onclick = () => { S.vOffset += 40; loadVouchers(true); };
-    } else if (mEl) mEl.parentElement.remove();
-    $$("#vs [data-so]").forEach(c => c.onclick = () => voucherDetail(c.dataset.so));
+    const build = sel => {
+      let qq = sb.from("vouchers").select(sel).order("created_at", { ascending: false }).order("so", { ascending: false }).range(S.vOffset, S.vOffset + 39);
+      if (S.vFilter !== "all") qq = qq.eq("loai", S.vFilter);
+      return qq;
+    };
+    let vs;
+    try { vs = await must(build("*, voucher_lines(count)")); } catch { vs = await must(build("*")); }
+    S.vAll = append ? S.vAll.concat(vs) : vs;
+    S.vMore = vs.length >= 40;
+    renderVouchers();
     if (!append) window.scrollTo(0, 0);
   } catch (e) { if (!append) box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
@@ -1040,9 +1316,9 @@ async function loadPickList(showLoading) {
     const rows = await must(sb.from("v_pick_progress").select("*").gte("ngay", addDays(-30))
       .order("created_at", { ascending: false }).limit(60));
     box.innerHTML = rows.map(r => `<div class="card" data-so="${esc(r.so)}" style="padding:13px"><div class="row"><div>
-        <h3><span class="code">${esc(r.so)}</span></h3>
-        <div style="font-weight:600;margin-top:2px">${esc(r.doi_tac || r.ghi_chu || "(không ghi nơi nhận)")}</div>
-        <div class="mut">${esc(r.ngay)} · ${esc(r.nguoi_lap || "")} · ${r.so_dong} dòng · SL ${fmt(r.tong_sl)}</div></div>
+        <h3>${esc(r.ghi_chu || r.doi_tac || "Phiếu xuất " + r.so)}</h3>
+        <div class="mut" style="margin-top:2px"><span class="code">${esc(r.so)}</span> · ${esc(dmy(r.ngay))} · ${esc(r.nguoi_lap || "")}</div>
+        <div class="mut">${r.so_dong} dòng · SL ${fmt(r.tong_sl)}</div></div>
         <span class="chip ${r.trang_thai === "Đã ghi sổ" ? "ok" : "warn"} fit">${esc(r.trang_thai || "")}</span></div></div>`).join("")
       || `<div class="empty">Chưa có phiếu xuất nào trong 30 ngày.</div>`;
     $$("#pl [data-so]").forEach(c => c.onclick = () => voucherDetail(c.dataset.so));
@@ -1064,7 +1340,7 @@ async function openPickScreen(v, lines) {
     const s2 = sug[l.id];
     if (!l.vi_tri && s2 && s2.length) s2.forEach(p => rows.push({ ma_hang: l.ma_hang, vi_tri: p.vi_tri, sl: p.take, lo: p.lo, hsd: p.hsd, goiy: true, nn: p.ngay_nhap || "" }));
     else rows.push({ ma_hang: l.ma_hang, vi_tri: l.vi_tri || "", den: l.vi_tri_den || "",
-      sl: v.loai === "KK" ? (l.sl_thuc_te ?? l.sl) : l.sl, so_sach: v.loai === "KK" ? l.sl_so_sach : null, lo: l.lo, hsd: l.hsd, gc: l.ghi_chu, nn: l.ngay_nhap || "" });
+      sl: v.loai === "KK" ? (l.sl_thuc_te ?? l.sl) : l.sl, so_sach: v.loai === "KK" ? l.sl_so_sach : null, lo: l.lo, hsd: l.hsd, gc: l.ghi_chu, nn: l.ngay_nhap || "", hm: l.hsd_moi || "", nm: l.nsx_moi || "" });
   });
   // ngày nhập của lô: ưu tiên ngày đã lưu trên dòng phiếu; chưa có thì tra theo tồn hiện tại rồi thẻ kho
   if (v.loai !== "NHAP") {
@@ -1081,7 +1357,8 @@ async function openPickScreen(v, lines) {
       } catch {}
     }
   }
-  rows.sort((a, b) => (!a.vi_tri - !b.vi_tri) || natCmp(a.vi_tri, b.vi_tri) || natCmp(a.ma_hang, b.ma_hang) ||
+  if (v.loai === "NHAP") rows.reverse();   // phiếu nhập: dòng nhập sau hiện trước
+  else rows.sort((a, b) => (!a.vi_tri - !b.vi_tri) || natCmp(a.vi_tri, b.vi_tri) || natCmp(a.ma_hang, b.ma_hang) ||
     String(a.hsd || "9999").localeCompare(String(b.hsd || "9999")));
   const total = rows.reduce((a, r) => a + Number(r.sl || 0), 0);
   const dvt = ma => (itemView(ma) || {}).dvt || "";
@@ -1094,12 +1371,12 @@ async function openPickScreen(v, lines) {
   el.innerHTML = `<div class="ph"><div class="t"><button class="tb btn sm fit" id="pback" style="background:rgba(255,255,255,.16);color:#fff;min-height:38px">‹ Quay lại</button>
       <b>${esc(DOC_TITLE[v.loai] || "PHIẾU")}</b></div></div>
     <div class="pl">
-      <div class="doc"><div class="ttl">${esc(DOC_TITLE[v.loai] || "PHIẾU")}</div><dl>
+      <div class="doc"><div class="ttl">${esc(DOC_TITLE[v.loai] || "PHIẾU")}</div>
+        ${v.ghi_chu ? `<div class="dname">${esc(v.ghi_chu)}</div>` : ""}<dl>
         <dt>Số phiếu</dt><dd class="code">${esc(v.so)}</dd>
         <dt>Ngày</dt><dd>${esc(v.ngay)}</dd>
         ${v.doi_tac ? `<dt>${who}</dt><dd>${esc(v.doi_tac)}</dd>` : ""}
         <dt>Người lập</dt><dd>${esc(v.nguoi_lap || "—")}</dd>
-        ${v.ghi_chu ? `<dt>Ghi chú</dt><dd>${esc(v.ghi_chu)}</dd>` : ""}
         <dt>Tổng cộng</dt><dd>${rows.length} dòng · SL ${fmt(total)}</dd></dl>
         ${draft ? `<div style="margin-top:8px"><span class="chip warn">${esc(v.trang_thai)} (chưa ghi sổ trên máy tính)</span></div>` : ""}</div>
       <div class="tbl"><div class="th"><span>STT</span><span>Hàng hóa</span><span style="text-align:right">Vị trí · SL</span></div>
@@ -1108,10 +1385,13 @@ async function openPickScreen(v, lines) {
           <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${r.lo ? " · lô " + esc(r.lo) : ""}</div>
           <div style="margin-top:2px">${r.nn ? `<span class="chip gray">Nhập ${esc(r.nn)}</span>` : ""}${r.hsd ? hsdChip(r.hsd) : ""}</div>
           ${r.gc ? `<div class="mut" style="margin-top:2px">📝 ${esc(r.gc)}</div>` : ""}
+          ${r.hm || r.nm ? `<div class="mut" style="margin-top:2px">📅 Đổi ${r.nm ? "NSX → " + esc(r.nm) + " " : ""}${r.hm ? "HSD → " + esc(r.hm) : ""}</div>` : ""}
           ${r.goiy ? `<div class="sug">gợi ý theo ${esc(S.xuatRule)}</div>` : ""}</div>
         <div><div class="lc">${esc(r.vi_tri || "—")}${r.den ? " → " + esc(r.den) : ""}</div>
           <div class="q">${fmt(r.sl)} <span class="mut">${esc(dvt(r.ma_hang))}</span></div>
-          ${r.so_sach != null ? `<div class="mut" style="text-align:right">sổ sách ${fmt(r.so_sach)}</div>` : ""}</div></div>`).join("")}</div>
+          ${r.so_sach != null ? `<div style="text-align:right;margin-top:2px">${(() => { const d = Number(r.sl) - Number(r.so_sach);
+              return Math.abs(d) < 1e-9 ? `<span class="chip ok" style="margin:0">Đủ</span>` : `<span class="chip ${d < 0 ? "bad" : "warn"}" style="margin:0">${d < 0 ? "Thiếu " + fmt(-d) : "Thừa " + fmt(d)}</span>`; })()}
+              <div class="mut">sổ sách ${fmt(r.so_sach)}</div></div>` : ""}</div></div>`).join("")}</div>
       ${canDelete ? `<p style="margin:20px 0 8px;text-align:center"><button class="btn bad sm" id="pundo">🗑 Xóa phiếu (hoàn lại tồn kho)</button></p>` : ""}
     </div>`;
   document.body.append(el);

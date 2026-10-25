@@ -290,6 +290,20 @@ border-radius:999px;padding:9px 14px;font:700 13.5px inherit;min-height:40px}
 .abanner{display:flex;align-items:center;gap:10px;background:var(--warnbg);color:var(--warn);border-radius:14px;padding:11px 12px;margin:8px 0;font-weight:700;font-size:13.5px;cursor:pointer}
 .abanner b{font-size:18px}
 .abanner.bad{background:var(--badbg);color:var(--bad)}
+.seg button{white-space:nowrap;font-size:12.5px;padding:9px 3px}
+.kgrp{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:8px 0;overflow:hidden}
+.kgrp>.ghd{display:flex;gap:11px;align-items:center;padding:11px 12px;cursor:pointer}
+.kgrp>.ghd:active{background:var(--tap)}
+.kgrp .kids{display:none;background:var(--tap);padding:6px 10px 8px 12px;border-top:1px dashed var(--line)}
+.kgrp.open .kids{display:block}
+.kgrp .arr2{color:var(--mut);font-size:18px;transition:transform .15s}
+.kgrp.open .arr2{transform:rotate(90deg)}
+.kid{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 10px;margin:6px 0;cursor:pointer}
+.kid:active{background:var(--tap)}
+.kid.empty{opacity:.55;cursor:default}
+.kid .kc{font:800 15px ui-monospace,Menlo,Consolas,monospace;min-width:54px}
+.relbar{margin-top:8px}
+.relbar .tpl{padding:7px 12px;min-height:36px;font-size:13px}
 </style>
 </head>
 <body>
@@ -329,7 +343,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v23";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v26";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -467,9 +481,9 @@ let _refAt = 0;
 async function loadRef() {
   const [items, locs, custs, setRows, stk] = await Promise.all([
     must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu,han_dung").order("ma")),
-    must(sb.from("locations").select("ma,ghi_chu").eq("active", 1).order("ma")),
+    must(sb.from("locations").select("ma,ghi_chu,cha,kien,loai").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
-    must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat", "canh_bao_pct"])),
+    must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat", "canh_bao_pct", "kk_start"])),
     must(sb.from("v_stock_tong").select("ma,tong").gt("tong", 0)),
   ]);
   Object.assign(S, { items, locs, custs, inStock: new Map((stk || []).map(r => [r.ma, Number(r.tong)])) });
@@ -478,6 +492,7 @@ async function loadRef() {
   S.chuyDays = Number(g.hsd_chu_y) || 90;
   S.xuatRule = g.nguyen_tac_xuat || "FIFO";
   S.pct0 = Number(g.canh_bao_pct) || 70;
+  S.kkStart = g.kk_start || (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toLocaleDateString("sv-SE"); })();
   S.pct = Number((() => { try { return localStorage.getItem("kho_pct"); } catch { return ""; } })()) || S.pct0;
   S.dateCache = null;
   _refAt = Date.now();
@@ -733,7 +748,7 @@ function alertCard(r, showLoc) {
     <div>${showLoc ? `<span class="loc">📍 ${esc(r.vi_tri || "—")}</span>` : ""}<span class="code mut">${esc(r.ma_hang)}</span></div>
     <div class="left l${lv}">⏰ HSD ${esc(dmy(r.hsd))} · ${left}</div>
     <div class="meta">${r.ngay_nhap ? "Nhập " + esc(dmy(r.ngay_nhap)) : ""}${r.nsx ? " · NSX " + esc(dmy(r.nsx)) : ""}${r.total ? " · hạn dùng " + r.total + " ngày" : ""}${r.lo ? " · lô " + esc(r.lo) : ""}</div>
-    <div class="acts"><button class="btn ghost sm" data-aa="chuyen" data-id="${r.id}">Chuyển</button><button class="btn sm" data-aa="xuat" data-id="${r.id}">Xuất</button></div></div>`;
+    <div class="acts"><button class="btn alt" data-aa="doi" data-id="${r.id}" style="flex:1.6">🔄 Đổi date</button><button class="btn ghost sm" data-aa="chuyen" data-id="${r.id}">Chuyển</button><button class="btn sm" data-aa="xuat" data-id="${r.id}">Xuất</button></div></div>`;
 }
 async function renderDateAlert() {
   const res = $("#res"); if (!res) return;
@@ -753,12 +768,15 @@ async function renderDateAlert() {
       const by = {}; a.forEach(r => (by[r.vi_tri || "—"] ||= []).push(r));
       body = Object.keys(by).sort((x, y) => natCmp(x, y)).map(k => `<div class="vday" style="display:flex;justify-content:space-between"><span>📍 ${esc(k)}</span><span>${by[k].length} dòng</span></div>${by[k].map(r => alertCard(r, false)).join("")}`).join("");
     } else body = a.map(r => alertCard(r, true)).join("");
-    res.innerHTML = `<div class="card" style="margin:8px 0"><div class="head"><h3>⏰ Cảnh báo date</h3></div>
-      <div class="mut">Hiện hàng đã hết hạn hoặc còn ≤ <b style="color:var(--ink)">${S.pct}%</b> hạn dùng</div>
-      <div class="tplbar" style="margin-top:8px">${chips.map(c => `<button type="button" class="tpl ${S.pct === c ? "on" : ""}" data-pct="${c}">${c}%</button>`).join("")}</div>
-      <div class="row" style="margin-top:8px;gap:8px;align-items:center"><span class="mut fit" style="white-space:nowrap;font-weight:600">Cảnh báo khi còn ≤</span>
-        <input id="pctin" type="text" data-num autocomplete="off" value="${S.pct}" style="max-width:84px;text-align:center;font-weight:800;font-size:18px"><span class="mut fit" style="font-weight:600">% hạn dùng</span>
-        <button class="btn sm fit" id="pctok">Áp dụng</button></div>
+    res.innerHTML = `<div class="card" style="margin:8px 0"><div class="head"><h3>⏰ Sắp hết hạn</h3></div>
+      <div style="font-size:15px;line-height:1.45;margin:2px 0 12px">Đang hiện hàng <b style="color:var(--bad)">đã hết hạn</b> hoặc còn
+        <b>≤ <span style="font-size:24px;color:var(--bad)">${S.pct}%</span></b> hạn dùng</div>
+      <label style="margin-top:0">Mức cảnh báo (còn lại bao nhiêu % hạn dùng thì báo)</label>
+      <div class="row" style="gap:10px;align-items:center"><span class="fit" style="font-size:22px;font-weight:800">≤</span>
+        <input id="pctin" class="fit" type="text" data-num autocomplete="off" value="${S.pct}" style="width:120px;text-align:center;font-size:28px;font-weight:800;padding:6px 8px;min-height:54px">
+        <span class="fit" style="font-size:24px;font-weight:800">%</span>
+        <button class="btn" id="pctok" style="min-height:54px">Áp dụng</button></div>
+      <div class="tplbar" style="margin-top:12px">${chips.map(c => `<button type="button" class="tpl ${S.pct === c ? "on" : ""}" data-pct="${c}">${c}%</button>`).join("")}</div>
       <div class="seg" style="margin-top:10px"><button data-m="level" class="${S.dmode === "level" ? "on" : ""}">Theo mức độ</button><button data-m="loc" class="${S.dmode === "loc" ? "on" : ""}">Theo vị trí / kiện</button></div>
       ${S.isAdmin ? `<p style="margin:10px 0 0"><button class="btn ghost sm2" id="pctsave">💾 Dùng ${S.pct}% này cho cả kho (PC + điện thoại)</button></p>` : ""}</div>
       <div class="sumbar"><span>${a.length} dòng · ${nExp} đã hết hạn</span><span>${known ? known + " dòng chưa rõ hạn dùng" : ""}</span></div>
@@ -780,9 +798,48 @@ async function renderDateAlert() {
     $("#alist").onclick = e => {
       const b = e.target.closest("[data-aa]"); if (!b) return;
       const lot = all.find(l => String(l.id) === b.dataset.id); if (!lot) return;
-      b.dataset.aa === "xuat" ? sheetIssue(lot) : sheetMove(lot);
+      b.dataset.aa === "xuat" ? sheetIssue(lot) : b.dataset.aa === "doi" ? sheetExchange(lot) : sheetMove(lot);
     };
   } catch (e) { if ($("#res")) $("#res").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+// Đổi hàng cận / hết date: mang lô cũ đi đổi, nhận về lô mới có NSX / HSD mới (1 bước)
+function sheetExchange(l) {
+  const it = itemView(l.ma_hang), days = Number(it && it.han_dung) || Number(l.total) || 0;
+  sheet(`<h3>🔄 Đổi date</h3>${lotHead(l)}
+    <label>Số lượng mang đi đổi (tối đa ${fmt(l.sl)})</label>
+    <input id="xs" type="text" data-num autocomplete="off" value="${l.sl}" style="font-size:20px;font-weight:800">
+    <label style="display:flex;align-items:center;gap:10px;margin:14px 0 4px;color:var(--ink);font-size:14px"><input type="checkbox" id="xlater" style="width:22px;min-height:22px;height:22px;flex:none"> Chưa có hàng về — chỉ xuất đi đổi trước</label>
+    <div id="xnew"><div class="section" style="margin-top:12px">Hàng đổi về (date mới)</div>
+      <div class="grid2"><div><label style="margin-top:4px">NSX mới</label><input type="date" id="xn"></div>
+        <div><label style="margin-top:4px">HSD mới <span class="req">*</span></label><input type="date" id="xh"></div></div>
+      <div id="xauto" class="hintline">${days ? `Mã này hạn dùng ${days} ngày: nhập NSX mới thì HSD tự tính.` : "Mã này chưa có số ngày hạn dùng: nhập HSD mới."}</div>
+      <div class="grid2"><div><label>Số lượng nhận về</label><input id="xr" type="text" data-num autocomplete="off" value="${l.sl}"></div>
+        <div><label>Vị trí nhận về</label><input id="xv" autocapitalize="characters" value="${esc(l.vi_tri || "")}"></div></div><div id="xvp"></div></div>
+    <label>Nơi đổi / nhà cung cấp (tuỳ chọn)</label><input id="xd" enterkeyhint="next">
+    <label>Ghi chú</label><input id="xg" enterkeyhint="done">
+    <p style="margin-top:14px"><button class="btn" id="xok" style="width:100%">🔄 ĐỔI DATE</button></p>`, (el, close) => {
+    let touched = false;
+    $("#xr", el).oninput = () => { touched = true; };
+    $("#xs", el).oninput = () => { if (!touched) $("#xr", el).value = $("#xs", el).value; };
+    $("#xn", el).onchange = () => { if (days && $("#xn", el).value) $("#xh", el).value = addDaysIso($("#xn", el).value, days); };
+    $("#xlater", el).onchange = () => { $("#xnew", el).style.display = $("#xlater", el).checked ? "none" : ""; };
+    attachLoc($("#xv", el), $("#xvp", el), () => $("#xd", el).focus());
+    $("#xok", el).onclick = async () => {
+      const sl = Number($("#xs", el).value), later = $("#xlater", el).checked;
+      if (!(sl > 0) || sl > Number(l.sl) + 1e-9) return toast(`Số lượng đổi phải trong khoảng 0 – ${fmt(l.sl)}.`, true);
+      const hsd = $("#xh", el).value, nhan = Number($("#xr", el).value);
+      if (!later && !hsd) return toast("Nhập HSD mới của hàng đổi về (hoặc tick “Chưa có hàng về”).", true);
+      if (!later && !(nhan > 0)) return toast("Nhập số lượng nhận về > 0.", true);
+      const btn = $("#xok", el); busy(btn, true, "Đang đổi…");
+      try {
+        const so = await rpc("exchange_lot", { p_ma: l.ma_hang, p_lo: l.lo || "", p_nsx: l.nsx || "", p_hsd: l.hsd || "", p_vt: l.vi_tri || "", p_sl: sl,
+          p_nsx_moi: later ? "" : $("#xn", el).value, p_hsd_moi: later ? "" : hsd, p_sl_nhan: later ? null : nhan,
+          p_vt_den: later ? "" : $("#xv", el).value.trim().toUpperCase(), p_doi_tac: $("#xd", el).value.trim(), p_ghi_chu: $("#xg", el).value.trim(), p_da_nhan: !later });
+        toast(later ? `Đã xuất đi đổi ${so}` : `Đã đổi date ${so}`); vibrate(20);
+        S.dateCache = null; refreshRef(true); close(); voucherDetail(so);
+      } catch (e) { toast(e.message, true); busy(btn, false); }
+    };
+  });
 }
 function hsdChip(hsd) {
   if (!hsd) return `<span class="chip gray">Không HSD</span>`;
@@ -1132,11 +1189,114 @@ function viewStocktake() {
     <label>Quét hoặc gõ mã vị trí</label>
     <div class="row"><input id="vt" autocapitalize="characters" enterkeyhint="go" placeholder="VD: A001" autofocus><button class="btn alt fit" type="button" id="kscan">📷</button></div>
     <div id="vtpicks"></div></div>
+    <div id="kkov"></div>
     <p class="hintline">Chọn vị trí là <b>tự mở và cập nhật</b> hàng đang có ở đó. Với từng mã: bấm <b>ĐỦ</b> nếu đúng, nhập <b>số thực tế</b> nếu lệch, hoặc <b>Không có</b>. Có thể đổi NSX/HSD hoặc chuyển mã sang kiện khác ngay lúc kiểm. Xong bấm <b>Ghi kiểm kê</b>.</p>`;
   attachLoc($("#vt"), $("#vtpicks"), v => kkOpen(v));
   $("#kscan").onclick = () => scanInto($("#vt"), v => kkOpen(v));
   $("#vt").onkeydown = e => { if (e.key === "Enter") kkOpen($("#vt").value); };
   setTimeout(() => { const i = $("#vt"); if (i) i.focus(); }, 50);
+  kkOverview();
+}
+// ---- Tiến độ kiểm kê TOÀN KHO: vị trí nào đã kiểm đủ / kiểm dở / chưa kiểm trong đợt kiểm kê hiện tại
+async function pageAll(q) {
+  const out = [];
+  for (let from = 0; ; from += 1000) { const r = await must(q(from, from + 999)); out.push(...r); if (r.length < 1000) break; }
+  return out;
+}
+async function kkOverview(refetch) {
+  const box = $("#kkov"); if (!box) return;
+  if (refetch !== false || !S.kkOv) {
+    box.innerHTML = `<div class="card"><div class="empty">Đang tính tiến độ kiểm kê toàn kho…</div></div>`;
+    try {
+      const stock = await pageAll((a, b) => sb.from("v_stock").select("vi_tri,ma_hang,lo,sl").gt("sl", 0).range(a, b));
+      const kk = await pageAll((a, b) => sb.from("voucher_lines").select("ma_hang,lo,vi_tri,vi_tri_den,sl_so_sach,sl_thuc_te,vouchers!inner(loai,ngay,nguoi_lap,created_at)")
+        .eq("vouchers.loai", "KK").gte("vouchers.ngay", S.kkStart).not("sl_thuc_te", "is", null).range(a, b));
+      const key = (m, lo, loc) => [m, lo || "", loc].join("|");
+      const left = {}, last = {}; let thieu = 0, thua = 0;
+      kk.forEach(l => {
+        const d = l.sl_so_sach == null ? 0 : Number(l.sl_thuc_te) - Number(l.sl_so_sach);
+        if (d < -1e-9) thieu++; else if (d > 1e-9) thua++;
+        [l.vi_tri, l.vi_tri_den].filter(Boolean).forEach(loc => {
+          const k = key(l.ma_hang, l.lo, loc); left[k] = (left[k] || 0) + 1;
+          const at = (l.vouchers && l.vouchers.created_at) || ""; const li = last[loc] ||= { at: "", by: "" };
+          if (at > li.at) { li.at = at; li.by = (l.vouchers && l.vouchers.nguoi_lap) || ""; }
+        });
+      });
+      const locs = {};
+      stock.forEach(r => {
+        const loc = r.vi_tri || "—", L = locs[loc] ||= { loc, n: 0, c: 0, sl: 0, slc: 0 };
+        const k = key(r.ma_hang, r.lo, r.vi_tri || ""); L.n++; L.sl += Number(r.sl);
+        if ((left[k] || 0) > 0) { left[k]--; L.c++; L.slc += Number(r.sl); }
+      });
+      const list = Object.values(locs).map(L => ({ ...L, st: L.c === 0 ? "none" : L.c >= L.n ? "done" : "part", ...(last[L.loc] || {}) }));
+      list.sort((a, b) => natCmp(a.loc, b.loc));
+      S.kkOv = { list, thieu, thua, nLines: kk.length };
+    } catch (e) { box.innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; return; }
+  }
+  const { list, thieu, thua } = S.kkOv, f = S.kkFilter || "none";
+  const cnt = st => list.filter(x => x.st === st).length;
+  const n = list.length, done = cnt("done"), part = cnt("part"), none = cnt("none");
+  const slAll = list.reduce((a, x) => a + x.sl, 0), slDone = list.reduce((a, x) => a + x.slc, 0);
+  const pct = n ? Math.round(100 * done / n) : 0, allOk = n > 0 && done === n;
+  const dmyt = at => at ? `${dmy(at.slice(0, 10))} ${at.slice(11, 16)}` : "";
+  // ---- nhóm theo Pallet -> Kiện
+  const stat = {}; list.forEach(x => { stat[x.loc] = x; });
+  const kidsOf = {}; S.locs.forEach(l => { if (l.cha) (kidsOf[l.cha] ||= []).push(l); });
+  Object.values(kidsOf).forEach(arr => arr.sort((x, y) => (x.kien || 0) - (y.kien || 0) || natCmp(x.ma, y.ma)));
+  const known = new Set(S.locs.map(l => l.ma));
+  const tops = S.locs.filter(l => !l.cha).map(l => l.ma).concat(list.filter(x => !known.has(x.loc)).map(x => x.loc));
+  const groups = [...new Set(tops)].map(code => {
+    const kids = (kidsOf[code] || []).map(k => k.ma);
+    const units = [code, ...kids].filter(c => stat[c]).map(c => stat[c]);
+    const nd = units.filter(u => u.st === "done").length, nn = units.filter(u => u.st === "none").length;
+    const st = !units.length ? "empty" : nn === units.length ? "none" : nd === units.length ? "done" : "part";
+    return { code, kids, units, st, sl: units.reduce((q, u) => q + u.sl, 0), nMa: units.reduce((q, u) => q + u.n, 0), loc: S.locs.find(l => l.ma === code) || {} };
+  }).filter(g => g.units.length || g.kids.length).sort((x, y) => natCmp(x.code, y.code));
+  const needG = groups.filter(g => g.st === "none" || g.st === "part").length, doneG = groups.filter(g => g.st === "done").length;
+  const showG = groups.filter(g => f === "all" || (f === "done" ? g.st === "done" : g.st === "none" || g.st === "part"));
+  const nKien = S.locs.filter(l => l.cha && stat[l.ma]).length, kDone = S.locs.filter(l => l.cha && stat[l.ma] && stat[l.ma].st === "done").length;
+  S.kkOpenG = S.kkOpenG || {};
+  const chipSt = st => `<span class="chip ${st === "done" ? "ok" : st === "part" ? "warn" : st === "none" ? "bad" : "gray"} fit" style="margin:0">${st === "done" ? "Đủ" : st === "part" ? "Dở" : st === "none" ? "Chưa" : "Trống"}</span>`;
+  const unitRow = (code, label) => { const u = stat[code];
+    return u ? `<div class="kid" data-kl="${esc(code)}"><span>${u.st === "done" ? "✅" : u.st === "part" ? "🟡" : "⬜"}</span><span class="kc">${esc(code)}</span>
+        <div style="flex:1;min-width:0;font-size:12.5px;color:var(--mut)">${label ? esc(label) + " · " : ""}${u.n} mã · SL ${fmt(u.sl)}${u.st !== "none" ? ` · đã kiểm ${u.c}/${u.n}` : ""}${u.by ? `<br>${esc(u.by)} ${esc(dmyt(u.at))}` : ""}</div>${chipSt(u.st)}</div>`
+      : `<div class="kid empty"><span>⬜</span><span class="kc">${esc(code)}</span><div style="flex:1;font-size:12.5px;color:var(--mut)">Kiện trống (không có hàng)</div>${chipSt("empty")}</div>`; };
+  const glist = showG.slice(0, 80).map(g => {
+    const open = S.kkOpenG[g.code] != null ? S.kkOpenG[g.code] : (g.st !== "done" && g.kids.length > 0);
+    const hasKids = g.kids.length > 0, nm = g.loc.ghi_chu ? " · " + g.loc.ghi_chu : "";
+    const kd = g.units.filter(u => u.loc !== g.code);
+    return `<div class="kgrp ${open ? "open" : ""}" data-g="${esc(g.code)}"><div class="ghd" data-gh="${esc(g.code)}" data-has="${hasKids ? 1 : 0}">
+        <div class="vic">${hasKids ? "🗂" : "📦"}</div>
+        <div class="vb"><div class="vtitle code">${esc(g.code)}<span style="font:600 12px system-ui;color:var(--mut)">${esc(nm)}</span></div>
+          <div class="vmeta">${hasKids ? g.kids.length + " kiện · " : ""}${g.nMa} mã · SL ${fmt(g.sl)}${hasKids ? ` · kiện đủ ${kd.filter(u => u.st === "done").length}/${kd.length}` : ""}</div></div>
+        ${chipSt(g.st)}${hasKids ? `<span class="arr2">›</span>` : ""}</div>
+      ${hasKids ? `<div class="kids">${stat[g.code] ? unitRow(g.code, "Hàng để thẳng trên pallet") : ""}${g.kids.map(k => unitRow(k)).join("")}</div>` : ""}</div>`;
+  }).join("") || `<div class="empty">${f === "done" ? "Chưa có pallet nào kiểm đủ." : "🎉 Không còn pallet / kiện nào cần kiểm."}</div>`;
+  const kf = f === "none" || f === "part" ? "need" : f;
+  box.innerHTML = `<div class="card"><div class="head"><h3>📊 Tiến độ kiểm kê toàn kho</h3></div>
+    <div class="mut">Đợt kiểm kê từ <b style="color:var(--ink)">${esc(dmy(S.kkStart))}</b></div>
+    <div class="allok" style="${allOk ? "" : "background:var(--warnbg);color:var(--warn)"}">${allOk ? "✔ ĐÃ KIỂM ĐỦ TOÀN KHO" : `⚠ Chưa đủ: còn ${n - done} vị trí / kiện chưa kiểm đủ`}</div>
+    <div style="font-size:15px">Đã kiểm đủ <b style="font-size:22px">${done}</b> / ${n} vị trí &amp; kiện · <b>${pct}%</b></div>
+    <div class="pbar ${allOk ? "full" : ""}"><i style="width:${pct}%"></i></div>
+    <div class="stat"><div><span>Chưa kiểm</span><b style="color:var(--bad)">${none}</b></div><div><span>Kiểm dở</span><b style="color:var(--warn)">${part}</b></div><div><span>Đã đủ</span><b style="color:var(--ok)">${done}</b></div></div>
+    <div class="stat"><div><span>Pallet / vị trí cần kiểm</span><b>${needG}</b></div><div><span>Kiện đã kiểm đủ</span><b>${kDone}/${nKien}</b></div></div>
+    <div class="stat"><div><span>Tồn sổ sách (SL)</span><b>${fmt(slAll)}</b></div><div><span>Đã kiểm đủ (SL)</span><b>${fmt(slDone)}</b></div>
+      <div><span>Dòng lệch</span><b style="color:${thieu + thua ? "var(--bad)" : "var(--ok)"}">${thieu + thua}</b><span>${thieu} thiếu · ${thua} thừa</span></div></div>
+    ${S.isAdmin ? `<p style="margin:10px 0 0"><button class="btn ghost sm2" id="kkreset">🔄 Bắt đầu đợt kiểm kê mới (từ hôm nay)</button></p>` : ""}
+    <div class="seg" style="margin-top:12px">${[["need", `Cần kiểm (${needG})`], ["done", `Đã đủ (${doneG})`], ["all", "Tất cả"]]
+      .map(([k, t]) => `<button data-kf="${k}" class="${kf === k ? "on" : ""}">${t}</button>`).join("")}</div>
+    <div id="kklocs" style="margin-top:8px">${glist}${showG.length > 80 ? `<div class="mut" style="text-align:center;padding:8px">… còn ${showG.length - 80} nhóm nữa. Gõ mã vị trí ở trên để mở.</div>` : ""}</div></div>`;
+  $$("[data-kf]", box).forEach(b => b.onclick = () => { S.kkFilter = b.dataset.kf === "need" ? "none" : b.dataset.kf; kkOverview(false); });
+  $$("[data-gh]", box).forEach(h => h.onclick = () => {
+    if (h.dataset.has === "1") { const g = h.parentElement; g.classList.toggle("open"); S.kkOpenG[h.dataset.gh] = g.classList.contains("open"); }
+    else kkOpen(h.dataset.gh);
+  });
+  $$(".kid[data-kl]", box).forEach(c => c.onclick = () => kkOpen(c.dataset.kl));
+  if ($("#kkreset", box)) $("#kkreset", box).onclick = async () => {
+    if (!confirm("Bắt đầu ĐỢT KIỂM KÊ MỚI từ hôm nay?\nTiến độ sẽ tính lại từ 0 (các biên bản cũ vẫn được giữ).")) return;
+    try { await must(sb.from("settings").upsert({ key: "kk_start", value: today() })); S.kkStart = today(); toast("Đã bắt đầu đợt kiểm kê mới."); kkOverview(true); }
+    catch (e) { toast(e.message, true); }
+  };
 }
 async function kkOpen(raw) {
   const loc = String(raw || "").trim().toUpperCase();
@@ -1199,6 +1359,16 @@ function kkCount() {
   $("#main").innerHTML = `${dlItem()}${dlLoc()}
     <div class="card" style="margin-top:4px"><div class="head"><h3 class="code">📦 ${esc(k.loc)}</h3><div class="sp"></div><button class="btn ghost sm2 fit" id="kback">‹ Đổi vị trí</button></div>
       ${lname ? `<div class="mut">${esc(lname)}</div>` : ""}
+      ${(() => {
+        const me = S.locs.find(l => l.ma === k.loc) || {}, parent = me.cha;
+        const sibs = (parent ? S.locs.filter(l => l.cha === parent) : S.locs.filter(l => l.cha === k.loc)).slice().sort((x, y) => (x.kien || 0) - (y.kien || 0));
+        if (!sibs.length) return "";
+        const st = c => ((S.kkOv && S.kkOv.list.find(x => x.loc === c)) || {}).st;
+        const mark = c => c === k.loc ? "▶ " : st(c) === "done" ? "✅ " : st(c) === "part" ? "🟡 " : "";
+        const codes = (parent ? [parent] : []).concat(sibs.map(x => x.ma));
+        return `<div class="relbar"><div class="mut">${parent ? `Kiện thuộc pallet <b style="color:var(--ink)">${esc(parent)}</b> — chạm để chuyển kiện:` : "Các kiện trong pallet này — chạm để kiểm:"}</div>
+          <div class="tplbar">${codes.map(c => `<button type="button" class="tpl ${c === k.loc ? "on" : ""}" data-jump="${esc(c)}">${mark(c)}${esc(c)}</button>`).join("")}</div></div>`;
+      })()}
       <div class="stat"><div><span>Mã hàng</span><b>${total}</b></div><div><span>Đã kiểm</span><b>${done}/${total}</b></div>
         <div><span>Lệch</span><b style="color:${diffs ? "var(--bad)" : "var(--ok)"}">${diffs}</b></div></div>
       <div class="pbar ${total && done === total ? "full" : ""}"><i style="width:${total ? 100 * done / total : 0}%"></i></div></div>
@@ -1207,6 +1377,7 @@ function kkCount() {
     <div class="row" style="margin-top:10px;gap:8px"><button class="btn alt" id="kextra">＋ Hàng thừa</button>${total - done > 0 ? `<button class="btn ghost" id="kall">Đủ hết (${total - done})</button>` : ""}</div>
     <div class="pad-act"></div>
     <div class="actbar"><button class="btn" id="ksave" ${cnt ? "" : "disabled"}>✔ GHI KIỂM KÊ · ${cnt} mã${diffs ? " · " + diffs + " lệch" : ""}</button></div>`;
+  $$("[data-jump]").forEach(b => b.onclick = () => { kkPersist(); kkOpen(b.dataset.jump); });
   $("#kback").onclick = () => { kkPersist(); S.kk = { loc: "", rows: [], marks: {}, extras: [], open: null }; viewStocktake(); };
   const rerender = () => { kkPersist(); const y = window.scrollY; kkCount(); window.scrollTo(0, y); };
   const list = $("#kklist");
@@ -1450,7 +1621,7 @@ async function openPickScreen(v, lines) {
   lines.forEach(l => {
     const s2 = sug[l.id];
     if (!l.vi_tri && s2 && s2.length) s2.forEach(p => rows.push({ ma_hang: l.ma_hang, vi_tri: p.vi_tri, sl: p.take, lo: p.lo, hsd: p.hsd, goiy: true, nn: p.ngay_nhap || "" }));
-    else rows.push({ ma_hang: l.ma_hang, vi_tri: l.vi_tri || "", den: l.vi_tri_den || "",
+    else rows.push({ ma_hang: l.ma_hang, vi_tri: l.vi_tri || "", den: l.vi_tri_den && l.vi_tri_den !== l.vi_tri ? l.vi_tri_den : "", nhan: v.loai === "DOI" ? l.sl_nhan : null,
       sl: v.loai === "KK" ? (l.sl_thuc_te ?? l.sl) : l.sl, so_sach: v.loai === "KK" ? l.sl_so_sach : null, lo: l.lo, hsd: l.hsd, gc: l.ghi_chu, nn: l.ngay_nhap || "", hm: l.hsd_moi || "", nm: l.nsx_moi || "" });
   });
   // ngày nhập của lô: ưu tiên ngày đã lưu trên dòng phiếu; chưa có thì tra theo tồn hiện tại rồi thẻ kho
@@ -1496,6 +1667,7 @@ async function openPickScreen(v, lines) {
           <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${r.lo ? " · lô " + esc(r.lo) : ""}</div>
           <div style="margin-top:2px">${r.nn ? `<span class="chip gray">Nhập ${esc(r.nn)}</span>` : ""}${r.hsd ? hsdChip(r.hsd) : ""}</div>
           ${r.gc ? `<div class="mut" style="margin-top:2px">📝 ${esc(r.gc)}</div>` : ""}
+          ${v.loai === "DOI" ? `<div class="mut" style="margin-top:2px">${r.nhan != null ? "✔ Đã nhận về " + fmt(r.nhan) : "⏳ Chưa nhận hàng về"}</div>` : ""}
           ${r.hm || r.nm ? `<div class="mut" style="margin-top:2px">📅 Đổi ${r.nm ? "NSX → " + esc(r.nm) + " " : ""}${r.hm ? "HSD → " + esc(r.hm) : ""}</div>` : ""}
           ${r.goiy ? `<div class="sug">gợi ý theo ${esc(S.xuatRule)}</div>` : ""}</div>
         <div><div class="lc">${esc(r.vi_tri || "—")}${r.den ? " → " + esc(r.den) : ""}</div>

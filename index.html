@@ -304,6 +304,16 @@ border-radius:999px;padding:9px 14px;font:700 13.5px inherit;min-height:40px}
 .kid .kc{font:800 15px ui-monospace,Menlo,Consolas,monospace;min-width:54px}
 .relbar{margin-top:8px}
 .relbar .tpl{padding:7px 12px;min-height:36px;font-size:13px}
+.tbadge{display:inline-block;font:800 10.5px system-ui;letter-spacing:.06em;padding:3px 8px;border-radius:7px;vertical-align:middle;margin-right:7px;color:#fff}
+.tbadge.p{background:#0f766e}.tbadge.k{background:#d97706}.tbadge.v{background:#64748b}
+.kgrp>.ghd{border-left:6px solid #0f766e}
+.kgrp.single>.ghd{border-left-color:#64748b}
+.kids{position:relative}
+.kid{border-left:5px solid #d97706}
+.kid.own{border-left-color:#0f766e}
+.kgrp .chip,.kid .chip{white-space:nowrap}
+.tree-hint{font-size:12px;color:var(--mut);margin:8px 2px 0;display:flex;gap:12px;flex-wrap:wrap}
+.tree-hint span{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -343,7 +353,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v26";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v28";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -1233,13 +1243,13 @@ async function kkOverview(refetch) {
       S.kkOv = { list, thieu, thua, nLines: kk.length };
     } catch (e) { box.innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; return; }
   }
-  const { list, thieu, thua } = S.kkOv, f = S.kkFilter || "none";
+  const { list, thieu, thua } = S.kkOv, f = S.kkFilter || "all";
   const cnt = st => list.filter(x => x.st === st).length;
   const n = list.length, done = cnt("done"), part = cnt("part"), none = cnt("none");
   const slAll = list.reduce((a, x) => a + x.sl, 0), slDone = list.reduce((a, x) => a + x.slc, 0);
   const pct = n ? Math.round(100 * done / n) : 0, allOk = n > 0 && done === n;
   const dmyt = at => at ? `${dmy(at.slice(0, 10))} ${at.slice(11, 16)}` : "";
-  // ---- nhóm theo Pallet -> Kiện
+  // ---- cây Pallet -> Kiện, hiện ĐẦY ĐỦ mọi vị trí (kể cả trống)
   const stat = {}; list.forEach(x => { stat[x.loc] = x; });
   const kidsOf = {}; S.locs.forEach(l => { if (l.cha) (kidsOf[l.cha] ||= []).push(l); });
   Object.values(kidsOf).forEach(arr => arr.sort((x, y) => (x.kien || 0) - (y.kien || 0) || natCmp(x.ma, y.ma)));
@@ -1251,39 +1261,38 @@ async function kkOverview(refetch) {
     const nd = units.filter(u => u.st === "done").length, nn = units.filter(u => u.st === "none").length;
     const st = !units.length ? "empty" : nn === units.length ? "none" : nd === units.length ? "done" : "part";
     return { code, kids, units, st, sl: units.reduce((q, u) => q + u.sl, 0), nMa: units.reduce((q, u) => q + u.n, 0), loc: S.locs.find(l => l.ma === code) || {} };
-  }).filter(g => g.units.length || g.kids.length).sort((x, y) => natCmp(x.code, y.code));
+  }).sort((x, y) => natCmp(x.code, y.code));
   const needG = groups.filter(g => g.st === "none" || g.st === "part").length, doneG = groups.filter(g => g.st === "done").length;
   const showG = groups.filter(g => f === "all" || (f === "done" ? g.st === "done" : g.st === "none" || g.st === "part"));
   const nKien = S.locs.filter(l => l.cha && stat[l.ma]).length, kDone = S.locs.filter(l => l.cha && stat[l.ma] && stat[l.ma].st === "done").length;
   S.kkOpenG = S.kkOpenG || {};
-  const chipSt = st => `<span class="chip ${st === "done" ? "ok" : st === "part" ? "warn" : st === "none" ? "bad" : "gray"} fit" style="margin:0">${st === "done" ? "Đủ" : st === "part" ? "Dở" : st === "none" ? "Chưa" : "Trống"}</span>`;
-  const unitRow = (code, label) => { const u = stat[code];
-    return u ? `<div class="kid" data-kl="${esc(code)}"><span>${u.st === "done" ? "✅" : u.st === "part" ? "🟡" : "⬜"}</span><span class="kc">${esc(code)}</span>
-        <div style="flex:1;min-width:0;font-size:12.5px;color:var(--mut)">${label ? esc(label) + " · " : ""}${u.n} mã · SL ${fmt(u.sl)}${u.st !== "none" ? ` · đã kiểm ${u.c}/${u.n}` : ""}${u.by ? `<br>${esc(u.by)} ${esc(dmyt(u.at))}` : ""}</div>${chipSt(u.st)}</div>`
-      : `<div class="kid empty"><span>⬜</span><span class="kc">${esc(code)}</span><div style="flex:1;font-size:12.5px;color:var(--mut)">Kiện trống (không có hàng)</div>${chipSt("empty")}</div>`; };
+  const chipSt = st => `<span class="chip ${st === "done" ? "ok" : st === "part" ? "warn" : st === "none" ? "bad" : "gray"} fit" style="margin:0">${st === "done" ? "✓ Đủ" : st === "part" ? "Dở" : st === "none" ? "Chưa kiểm" : "Trống"}</span>`;
+  const unitRow = (code, own) => { const u = stat[code], lc = S.locs.find(l => l.ma === code) || {};
+    const nm = lc.ghi_chu ? ` · ${lc.ghi_chu}` : "";
+    return u ? `<div class="kid ${own ? "own" : ""}" data-kl="${esc(code)}"><div style="flex:1;min-width:0">${own ? `<span class="tbadge p">HÀNG TRÊN PALLET</span>` : tbadge(code)}<span class="kc" style="min-width:0">${esc(code)}</span><span style="font-size:12px;color:var(--mut)">${esc(nm)}</span>
+        <div style="font-size:12.5px;color:var(--mut);margin-top:3px">${u.n} mã · SL ${fmt(u.sl)}${u.st !== "none" ? ` · đã kiểm ${u.c}/${u.n}` : ""}${u.by ? ` · ${esc(u.by)} ${esc(dmyt(u.at))}` : ""}</div></div>${chipSt(u.st)}</div>`
+      : `<div class="kid" data-kl="${esc(code)}"><div style="flex:1;min-width:0">${tbadge(code)}<span class="kc" style="min-width:0">${esc(code)}</span><span style="font-size:12px;color:var(--mut)">${esc(nm)}</span>
+        <div style="font-size:12.5px;color:var(--mut);margin-top:3px">Không có hàng trên sổ (chạm để kiểm / thêm hàng thừa)</div></div>${chipSt("empty")}</div>`; };
   const glist = showG.slice(0, 80).map(g => {
-    const open = S.kkOpenG[g.code] != null ? S.kkOpenG[g.code] : (g.st !== "done" && g.kids.length > 0);
-    const hasKids = g.kids.length > 0, nm = g.loc.ghi_chu ? " · " + g.loc.ghi_chu : "";
+    const hasKids = g.kids.length > 0, open = S.kkOpenG[g.code] != null ? S.kkOpenG[g.code] : hasKids;
+    const nm = g.loc.ghi_chu ? " · " + g.loc.ghi_chu : "";
     const kd = g.units.filter(u => u.loc !== g.code);
-    return `<div class="kgrp ${open ? "open" : ""}" data-g="${esc(g.code)}"><div class="ghd" data-gh="${esc(g.code)}" data-has="${hasKids ? 1 : 0}">
-        <div class="vic">${hasKids ? "🗂" : "📦"}</div>
-        <div class="vb"><div class="vtitle code">${esc(g.code)}<span style="font:600 12px system-ui;color:var(--mut)">${esc(nm)}</span></div>
-          <div class="vmeta">${hasKids ? g.kids.length + " kiện · " : ""}${g.nMa} mã · SL ${fmt(g.sl)}${hasKids ? ` · kiện đủ ${kd.filter(u => u.st === "done").length}/${kd.length}` : ""}</div></div>
+    return `<div class="kgrp ${open ? "open" : ""} ${hasKids ? "" : "single"}" data-g="${esc(g.code)}"><div class="ghd" data-gh="${esc(g.code)}" data-has="${hasKids ? 1 : 0}">
+        <div class="vb">${tbadge(g.code)}<span class="vtitle code" style="display:inline">${esc(g.code)}</span><span style="font:600 12px system-ui;color:var(--mut)">${esc(nm)}</span>
+          <div class="vmeta" style="margin-top:3px">${hasKids ? `gồm <b>${g.kids.length} kiện</b> · kiện đủ ${kd.filter(u => u.st === "done").length}/${g.kids.length} · ` : ""}${g.nMa} mã · SL ${fmt(g.sl)}</div></div>
         ${chipSt(g.st)}${hasKids ? `<span class="arr2">›</span>` : ""}</div>
-      ${hasKids ? `<div class="kids">${stat[g.code] ? unitRow(g.code, "Hàng để thẳng trên pallet") : ""}${g.kids.map(k => unitRow(k)).join("")}</div>` : ""}</div>`;
+      ${hasKids ? `<div class="kids">${stat[g.code] ? unitRow(g.code, true) : ""}${g.kids.map(k => unitRow(k)).join("")}</div>` : ""}</div>`;
   }).join("") || `<div class="empty">${f === "done" ? "Chưa có pallet nào kiểm đủ." : "🎉 Không còn pallet / kiện nào cần kiểm."}</div>`;
   const kf = f === "none" || f === "part" ? "need" : f;
   box.innerHTML = `<div class="card"><div class="head"><h3>📊 Tiến độ kiểm kê toàn kho</h3></div>
     <div class="mut">Đợt kiểm kê từ <b style="color:var(--ink)">${esc(dmy(S.kkStart))}</b></div>
-    <div class="allok" style="${allOk ? "" : "background:var(--warnbg);color:var(--warn)"}">${allOk ? "✔ ĐÃ KIỂM ĐỦ TOÀN KHO" : `⚠ Chưa đủ: còn ${n - done} vị trí / kiện chưa kiểm đủ`}</div>
-    <div style="font-size:15px">Đã kiểm đủ <b style="font-size:22px">${done}</b> / ${n} vị trí &amp; kiện · <b>${pct}%</b></div>
-    <div class="pbar ${allOk ? "full" : ""}"><i style="width:${pct}%"></i></div>
-    <div class="stat"><div><span>Chưa kiểm</span><b style="color:var(--bad)">${none}</b></div><div><span>Kiểm dở</span><b style="color:var(--warn)">${part}</b></div><div><span>Đã đủ</span><b style="color:var(--ok)">${done}</b></div></div>
-    <div class="stat"><div><span>Pallet / vị trí cần kiểm</span><b>${needG}</b></div><div><span>Kiện đã kiểm đủ</span><b>${kDone}/${nKien}</b></div></div>
-    <div class="stat"><div><span>Tồn sổ sách (SL)</span><b>${fmt(slAll)}</b></div><div><span>Đã kiểm đủ (SL)</span><b>${fmt(slDone)}</b></div>
-      <div><span>Dòng lệch</span><b style="color:${thieu + thua ? "var(--bad)" : "var(--ok)"}">${thieu + thua}</b><span>${thieu} thiếu · ${thua} thừa</span></div></div>
+    <div class="allok" style="padding:8px;font-size:14px;${allOk ? "" : "background:var(--warnbg);color:var(--warn)"}">${allOk ? "✔ ĐÃ KIỂM ĐỦ TOÀN KHO" : `⚠ Còn ${n - done}/${n} vị trí &amp; kiện chưa kiểm đủ`}</div>
+    <div class="pbar ${allOk ? "full" : ""}" style="height:10px"><i style="width:${pct}%"></i></div>
+    <div class="stat" style="margin-top:8px"><div><span>Chưa kiểm</span><b style="color:var(--bad)">${none}</b></div><div><span>Dở</span><b style="color:var(--warn)">${part}</b></div><div><span>Đủ</span><b style="color:var(--ok)">${done}</b></div>
+      <div><span>Kiện đủ</span><b>${kDone}/${nKien}</b></div><div><span>Dòng lệch</span><b style="color:${thieu + thua ? "var(--bad)" : "var(--ok)"}">${thieu + thua}</b></div></div>
     ${S.isAdmin ? `<p style="margin:10px 0 0"><button class="btn ghost sm2" id="kkreset">🔄 Bắt đầu đợt kiểm kê mới (từ hôm nay)</button></p>` : ""}
-    <div class="seg" style="margin-top:12px">${[["need", `Cần kiểm (${needG})`], ["done", `Đã đủ (${doneG})`], ["all", "Tất cả"]]
+    <div class="tree-hint"><span><span class="tbadge p" style="margin:0">PALLET</span> chứa kiện</span><span><span class="tbadge k" style="margin:0">KIỆN</span> nằm trong pallet</span><span><span class="tbadge v" style="margin:0">VỊ TRÍ</span> đơn lẻ</span></div>
+    <div class="seg" style="margin-top:10px">${[["all", `Tất cả (${groups.length})`], ["need", `Cần kiểm (${needG})`], ["done", `Đã đủ (${doneG})`]]
       .map(([k, t]) => `<button data-kf="${k}" class="${kf === k ? "on" : ""}">${t}</button>`).join("")}</div>
     <div id="kklocs" style="margin-top:8px">${glist}${showG.length > 80 ? `<div class="mut" style="text-align:center;padding:8px">… còn ${showG.length - 80} nhóm nữa. Gõ mã vị trí ở trên để mở.</div>` : ""}</div></div>`;
   $$("[data-kf]", box).forEach(b => b.onclick = () => { S.kkFilter = b.dataset.kf === "need" ? "none" : b.dataset.kf; kkOverview(false); });
@@ -1357,7 +1366,7 @@ function kkCount() {
   const cnt = done + k.extras.length;
   const lname = locName(S.locs.find(l => l.ma === k.loc));
   $("#main").innerHTML = `${dlItem()}${dlLoc()}
-    <div class="card" style="margin-top:4px"><div class="head"><h3 class="code">📦 ${esc(k.loc)}</h3><div class="sp"></div><button class="btn ghost sm2 fit" id="kback">‹ Đổi vị trí</button></div>
+    <div class="card" style="margin-top:4px"><div class="head">${tbadge(k.loc)}<h3 class="code">${esc(k.loc)}</h3><div class="sp"></div>${S.isAdmin ? `<button class="btn alt sm2 fit" id="krename" style="margin-right:6px">✎ Đổi tên</button>` : ""}<button class="btn ghost sm2 fit" id="kback">‹ Đổi vị trí</button></div>
       ${lname ? `<div class="mut">${esc(lname)}</div>` : ""}
       ${(() => {
         const me = S.locs.find(l => l.ma === k.loc) || {}, parent = me.cha;
@@ -1366,17 +1375,18 @@ function kkCount() {
         const st = c => ((S.kkOv && S.kkOv.list.find(x => x.loc === c)) || {}).st;
         const mark = c => c === k.loc ? "▶ " : st(c) === "done" ? "✅ " : st(c) === "part" ? "🟡 " : "";
         const codes = (parent ? [parent] : []).concat(sibs.map(x => x.ma));
-        return `<div class="relbar"><div class="mut">${parent ? `Kiện thuộc pallet <b style="color:var(--ink)">${esc(parent)}</b> — chạm để chuyển kiện:` : "Các kiện trong pallet này — chạm để kiểm:"}</div>
+        return `<div class="relbar"><div class="mut">${parent ? `<span class="tbadge k" style="margin-right:4px">KIỆN</span> nằm trong <span class="tbadge p" style="margin-right:4px">PALLET</span><b style="color:var(--ink)">${esc(parent)}</b> — chạm để chuyển kiện:` : `<span class="tbadge p" style="margin-right:4px">PALLET</span> gồm <b style="color:var(--ink)">${sibs.length} kiện</b> — chạm để kiểm từng kiện:`}</div>
           <div class="tplbar">${codes.map(c => `<button type="button" class="tpl ${c === k.loc ? "on" : ""}" data-jump="${esc(c)}">${mark(c)}${esc(c)}</button>`).join("")}</div></div>`;
       })()}
       <div class="stat"><div><span>Mã hàng</span><b>${total}</b></div><div><span>Đã kiểm</span><b>${done}/${total}</b></div>
         <div><span>Lệch</span><b style="color:${diffs ? "var(--bad)" : "var(--ok)"}">${diffs}</b></div></div>
       <div class="pbar ${total && done === total ? "full" : ""}"><i style="width:${total ? 100 * done / total : 0}%"></i></div></div>
-    <div id="kklist">${k.rows.map(kkCard).join("") || `<div class="empty">Vị trí này chưa có hàng trên sổ.<br>Có hàng thì bấm “＋ Hàng thừa” bên dưới.</div>`}</div>
+    <div id="kklist">${k.rows.map(kkCard).join("") || `<div class="empty">${S.locs.some(x => x.cha === k.loc) ? "Pallet này không để hàng trực tiếp.<br>Hãy chạm vào <b>từng kiện</b> ở trên để kiểm." : "Vị trí này chưa có hàng trên sổ.<br>Có hàng thì bấm “＋ Hàng thừa” bên dưới."}</div>`}</div>
     ${k.extras.length ? `<div class="section">Hàng thừa (không có trên sổ)</div><div id="kkex">${k.extras.map(kkExtraCard).join("")}</div>` : ""}
     <div class="row" style="margin-top:10px;gap:8px"><button class="btn alt" id="kextra">＋ Hàng thừa</button>${total - done > 0 ? `<button class="btn ghost" id="kall">Đủ hết (${total - done})</button>` : ""}</div>
     <div class="pad-act"></div>
     <div class="actbar"><button class="btn" id="ksave" ${cnt ? "" : "disabled"}>✔ GHI KIỂM KÊ · ${cnt} mã${diffs ? " · " + diffs + " lệch" : ""}</button></div>`;
+  if ($("#krename")) $("#krename").onclick = sheetRenameLoc;
   $$("[data-jump]").forEach(b => b.onclick = () => { kkPersist(); kkOpen(b.dataset.jump); });
   $("#kback").onclick = () => { kkPersist(); S.kk = { loc: "", rows: [], marks: {}, extras: [], open: null }; viewStocktake(); };
   const rerender = () => { kkPersist(); const y = window.scrollY; kkCount(); window.scrollTo(0, y); };
@@ -1451,6 +1461,77 @@ function kkCount() {
       refreshRef(true); viewStocktake(); voucherDetail(so);
     }
   };
+}
+function locType(code) {
+  const l = S.locs.find(x => x.ma === code) || {};
+  if (l.cha) return ["KIỆN", "k"];
+  if (S.locs.some(x => x.cha === code)) return ["PALLET", "p"];
+  if (/chờ|staging/i.test(l.loai || "")) return ["KHU CHỜ", "v"];
+  if (/pallet/i.test(l.loai || "")) return ["PALLET", "p"];
+  return ["VỊ TRÍ", "v"];
+}
+const tbadge = code => { const [t, c] = locType(code); return `<span class="tbadge ${c}">${t}</span>`; };
+// Chuẩn hóa mã: IN HOA, bỏ khoảng trắng hai đầu, khoảng trắng giữa -> dấu gạch ngang
+const normCode = v => String(v || "").trim().toUpperCase().replace(/\s+/g, "-");
+// Đổi mã vị trí / pallet / kiện và ĐỒNG BỘ toàn bộ: danh mục, kiện bên trong, tồn kho, thẻ kho, phiếu cũ (PC cũng thấy ngay)
+function sheetRenameLoc() {
+  const k = S.kk, old = k.loc, me = S.locs.find(l => l.ma === old) || {};
+  const kids = S.locs.filter(l => l.cha === old).sort((a, b) => (a.kien || 0) - (b.kien || 0));
+  const auto = kids.filter(c => c.ma.startsWith(old + "-"));        // kiện đặt theo mã pallet -> tự đổi theo
+  const own = kids.filter(c => !c.ma.startsWith(old + "-"));        // kiện tên riêng -> tự sửa nếu muốn
+  sheet(`<h3>✎ Đổi mã vị trí</h3>
+    <div class="mut" style="margin:2px 0 8px">Đổi một lần: tồn kho, thẻ kho, phiếu cũ và các kiện bên trong đều đổi theo — PC và điện thoại thấy ngay.</div>
+    <div class="stat"><div><span>Mã hiện tại</span><b class="code">${esc(old)}</b></div>${me.cha ? `<div><span>Thuộc pallet</span><b class="code">${esc(me.cha)}</b></div>` : `<div><span>Số kiện</span><b>${kids.length}</b></div>`}</div>
+    <label>Mã mới</label><input id="rn" autocapitalize="characters" value="${esc(old)}" enterkeyhint="done" style="font-size:20px;font-weight:800;letter-spacing:.5px">
+    <div id="rnprev" class="hintline"></div>
+    ${auto.length ? `<div class="section" style="margin-top:12px">Kiện đặt theo mã pallet (tự đổi theo)</div><div id="rauto" class="hintline" style="line-height:1.8"></div>` : ""}
+    ${own.length ? `<div class="section" style="margin-top:12px">Kiện có tên riêng (sửa nếu muốn)</div>${own.map((c, i) => `<div class="row" style="margin:6px 0"><span class="code fit" style="min-width:56px">${esc(c.ma)}</span><span class="fit">→</span><input data-ko="${esc(c.ma)}" value="${esc(c.ma)}" autocapitalize="characters"></div>`).join("")}` : ""}
+    <div id="rnimp" class="hintline" style="margin-top:10px"></div>
+    <p style="margin-top:14px"><button class="btn" id="rok" style="width:100%">✎ ĐỔI TÊN &amp; ĐỒNG BỘ TOÀN BỘ</button></p>`, (el, close) => {
+    const codesAll = () => [old, ...kids.map(c => c.ma)];
+    // đếm số bản ghi bị ảnh hưởng để người dùng biết phạm vi
+    (async () => {
+      try {
+        const cnt = async (t, col) => (await sb.from(t).select("id", { count: "exact", head: true }).in(col, codesAll())).count || 0;
+        const [a, b, c] = await Promise.all([cnt("stock", "vi_tri"), cnt("ledger", "vi_tri"), cnt("voucher_lines", "vi_tri")]);
+        $("#rnimp", el).innerHTML = `Sẽ cập nhật: <b>${a}</b> dòng tồn · <b>${b}</b> dòng thẻ kho · <b>${c}</b> dòng phiếu`;
+      } catch {}
+    })();
+    const prev = () => {
+      const n = normCode($("#rn", el).value);
+      $("#rnprev", el).innerHTML = !n ? "" : n === old ? "Chưa đổi" : `Sẽ lưu là: <b class="code">${esc(n)}</b>`;
+      if ($("#rauto", el)) $("#rauto", el).innerHTML = n && n !== old ? auto.map(c => `<span class="code">${esc(c.ma)}</span> → <b class="code">${esc(n + c.ma.slice(old.length))}</b>`).join("<br>") : auto.map(c => `<span class="code">${esc(c.ma)}</span>`).join(" · ") + " (giữ nguyên)";
+    };
+    $("#rn", el).oninput = prev; prev();
+    setTimeout(() => { const i = $("#rn", el); i.focus(); i.select(); }, 80);
+    $("#rok", el).onclick = async () => {
+      const nw = normCode($("#rn", el).value), pairs = [];
+      if (!nw) return toast("Nhập mã mới.", true);
+      if (nw !== old) pairs.push({ old, new: nw });
+      $$("[data-ko]", el).forEach(i => { const v = normCode(i.value); if (v && v !== i.dataset.ko) pairs.push({ old: i.dataset.ko, new: v }); });
+      if (!pairs.length) return toast("Chưa có gì thay đổi.", true);
+      const all = new Set(S.locs.map(l => l.ma)); const olds = new Set(pairs.map(x => x.old)); const seen = new Set();
+      for (const x of pairs) {
+        if (/[^A-Z0-9\-_.\/]/i.test(x.new)) return toast(`Mã "${x.new}" có ký tự không hợp lệ (chỉ chữ, số, gạch ngang).`, true);
+        if ((all.has(x.new) && !olds.has(x.new)) || seen.has(x.new)) return toast(`Mã "${x.new}" đã tồn tại, hãy chọn tên khác.`, true);
+        seen.add(x.new);
+      }
+      const msg = pairs.map(x => `${x.old} → ${x.new}`).join("\n") + (auto.length && nw !== old ? `\n(+ ${auto.length} kiện theo mã pallet)` : "");
+      if (!confirm(`Đổi mã và đồng bộ toàn bộ?\n\n${msg}\n\nTồn kho, thẻ kho và phiếu cũ sẽ đổi theo.`)) return;
+      const btn = $("#rok", el); busy(btn, true, "Đang đồng bộ…");
+      try {
+        await rpc("rename_locations", { p_pairs: pairs });
+        // chuyển phần kiểm dở đã lưu trên máy sang mã mới
+        const move = (o, n) => { try { const v = localStorage.getItem(KK_PREFIX + o); if (v) { localStorage.setItem(KK_PREFIX + n, v); localStorage.removeItem(KK_PREFIX + o); } } catch {} };
+        pairs.forEach(x => move(x.old, x.new));
+        auto.forEach(c => move(c.ma, nw + c.ma.slice(old.length)));
+        toast("Đã đổi tên và đồng bộ toàn bộ."); vibrate(20); close();
+        S.kkOv = null; S.dateCache = null; S.kkOpenG = {};
+        await loadRef();
+        kkOpen(nw !== old ? nw : old);
+      } catch (e) { toast(e.message, true); busy(btn, false); }
+    };
+  });
 }
 function sheetExtra() {
   sheet(`<h3>＋ Hàng thừa / không có trên sổ</h3><div class="mut" style="margin:2px 0 6px">Hàng thấy ở vị trí ${esc(S.kk.loc)} nhưng sổ sách chưa có</div>

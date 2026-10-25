@@ -363,7 +363,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v30";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v31";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -928,14 +928,44 @@ function sheetIssue(l) {
     };
   });
 }
+// Chọn nơi đến: bất kỳ pallet nào, rồi bất kỳ kiện nào trong pallet đó (hoặc để trực tiếp trên pallet). Cũng quét / gõ mã được.
+function sheetDest(opt, onPick) {
+  const ex = String((opt && opt.exclude) || "").toUpperCase();
+  const pals = S.locs.filter(l => !l.cha);
+  const kidsOf = c => S.locs.filter(l => l.cha === c).sort((a, b) => (a.kien || 0) - (b.kien || 0) || natCmp(a.ma, b.ma));
+  const startPal = (() => { const me = S.locs.find(l => l.ma === ex) || {}; return me.cha || (pals.some(p => p.ma === ex) ? ex : ""); })();
+  sheet(`<h3>↦ Chuyển tới…</h3><div class="mut" style="margin:2px 0 8px">Đang ở: <b class="code" style="color:var(--ink)">${esc(ex || "—")}</b>. Chọn pallet, rồi chọn kiện (hoặc để trực tiếp trên pallet).</div>
+    <label style="margin-top:0">Quét / gõ mã vị trí</label>
+    <div class="row"><input id="dq" autocapitalize="characters" placeholder="VD: A001, A001-K02" enterkeyhint="go">${scanBtn("dq")}</div><div id="dqs"></div>
+    <div class="section" style="margin:14px 2px 4px">1) Chọn pallet</div>
+    <div class="pchips" id="dpal">${pals.map(g => { const n = kidsOf(g.ma).length; return `<button type="button" data-p="${esc(g.ma)}">${esc(g.ma)}<small>${n ? n + " kiện" : tbadgeText(g.ma)}</small></button>`; }).join("")}</div>
+    <div class="section" style="margin:10px 2px 4px">2) Chọn kiện / vị trí đặt hàng</div>
+    <div id="dkids"><div class="mut" style="padding:6px 2px">Chọn một pallet ở trên.</div></div>`, (el, close) => {
+    const choose = code => { code = String(code || "").trim().toUpperCase(); if (!code) return; if (code === ex) return toast("Đây là vị trí hiện tại, chọn nơi khác.", true); close(); onPick(code); };
+    const show = pc => {
+      $$("#dpal button", el).forEach(b => b.classList.toggle("p", b.dataset.p === pc));
+      const ks = kidsOf(pc), lp = S.locs.find(l => l.ma === pc) || {};
+      $("#dkids", el).innerHTML = `<button type="button" class="kid" data-c="${esc(pc)}" style="width:100%;text-align:left;border-left:5px solid #0f766e"><span class="tbadge p">${pals.some(x => x.ma === pc) && ks.length ? "TRỰC TIẾP TRÊN PALLET" : "VỊ TRÍ"}</span><span class="kc">${esc(pc)}</span><span style="flex:1;font-size:12px;color:var(--mut)">${esc(lp.ghi_chu || "")}${pc === ex ? " · (đang ở đây)" : ""}</span></button>` +
+        ks.map(k => `<button type="button" class="kid" data-c="${esc(k.ma)}" style="width:100%;text-align:left"><span class="tbadge k">KIỆN ${k.kien || ""}</span><span class="kc">${esc(k.ma)}</span><span style="flex:1;font-size:12px;color:var(--mut)">${esc(k.ghi_chu || "")}${k.ma === ex ? " · (đang ở đây)" : ""}</span></button>`).join("");
+      $$("#dkids [data-c]", el).forEach(b => b.onclick = () => choose(b.dataset.c));
+    };
+    $$("#dpal button", el).forEach(b => b.onclick = () => show(b.dataset.p));
+    attachLoc($("#dq", el), $("#dqs", el), v => choose(v));
+    $("#dq", el).onkeydown = e => { if (e.key === "Enter") choose($("#dq", el).value); };
+    if (startPal) show(startPal);
+  });
+}
+const tbadgeText = code => locType(code)[0];
 function sheetMove(l) {
   sheet(`${lotHead(l)}<label>Vị trí đến (khác vị trí hiện tại)</label>
     <div class="row"><input id="den" autocapitalize="characters" enterkeyhint="done" placeholder="Quét / gõ mã vị trí">${scanBtn("den")}</div>
     <div id="denpicks"></div>
+    <p style="margin:8px 0 0"><button type="button" class="btn alt" id="dpick" style="width:100%">🗂 Chọn pallet / kiện</button></p>
     <label>Số lượng chuyển (tối đa ${fmt(l.sl)})</label><input id="sl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-num value="${l.sl}" enterkeyhint="done">
     <label>Ghi chú</label><input id="gc" enterkeyhint="done">
     <p><button class="btn" id="ok" style="width:100%">Chuyển vị trí</button></p>`, (el, close) => {
     attachLoc($("#den", el), $("#denpicks", el), () => $("#sl", el).focus());
+    $("#dpick", el).onclick = () => sheetDest({ exclude: l.vi_tri }, v => { $("#den", el).value = v; $("#denpicks", el).innerHTML = ""; $("#sl", el).focus(); });
     $("#den", el).focus();
     $("#ok", el).onclick = () => {
       const sl = Number($("#sl", el).value), den = $("#den", el).value.trim().toUpperCase();
@@ -1377,7 +1407,7 @@ function kkCard(r) {
         <div><label style="margin-top:0">Số lẻ</label><input id="kl-${r.id}" type="text" data-num autocomplete="off" value="${le}"></div></div>`; })() : ""}
     ${open === "edit" ? `<div class="row" style="margin-top:8px"><input id="kq-${r.id}" type="text" data-num autocomplete="off" placeholder="Số lượng thực tế" value="${m ? m.qty : r.sl}" enterkeyhint="done"><button class="btn fit" data-k="applyq" data-id="${r.id}">OK</button></div>` : ""}
     <div class="kmore"><button class="btn ghost sm2" data-k="dates" data-id="${r.id}">📅 Đổi NSX / HSD</button>
-      <button class="btn ghost sm2" data-k="move" data-id="${r.id}">↦ Chuyển kiện khác</button>
+      <button class="btn ghost sm2" data-k="move" data-id="${r.id}">↦ Chuyển pallet / kiện khác</button>
       ${m ? `<button class="btn ghost sm2" data-k="reset" data-id="${r.id}">↺ Hủy</button>` : ""}</div>
     ${open === "dates" ? `<div class="grid2" style="margin-top:6px"><div><label>NSX</label><input type="date" id="kn-${r.id}" value="${esc((m && m.nsx_moi) || r.nsx || "")}" data-days="${days}"></div>
       <div><label>HSD</label><input type="date" id="kh-${r.id}" value="${esc((m && m.hsd_moi) || r.hsd || "")}"></div></div>
@@ -1448,7 +1478,8 @@ function kkCount() {
     if (act === "ok") { k.marks[id] = { ...old, st: "ok", qty: Number(r.sl) }; k.open = null; }
     else if (act === "none") { k.marks[id] = { ...old, st: "none", qty: 0 }; k.open = null; }
     else if (act === "reset") { delete k.marks[id]; k.open = null; }
-    else if (act === "edit" || act === "dates" || act === "move") {
+    else if (act === "move") { sheetDest({ exclude: r.vi_tri }, v => applyMove(id, v)); return; }
+    else if (act === "edit" || act === "dates") {
       const mode = act; k.open = k.open && k.open.id === id && k.open.mode === mode ? null : { id, mode };
     }
     else if (act === "applyq") {

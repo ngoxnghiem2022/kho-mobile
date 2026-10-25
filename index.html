@@ -353,7 +353,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v28";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v29";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -467,6 +467,18 @@ function quickPicks(items, keys, q, n = 6) {
 const itemView = ma => { const k = String(ma || "").trim(); if (!k) return undefined;
   return S.items.find(i => i.ma === k) || S.items.find(i => String(i.ma).trim().toLowerCase() === k.toLowerCase()); };
 const vnName = o => ((o && (o.ten_vn || "").trim()) || (o && o.ten) || "");
+// Nguyên thùng / lẻ theo quy cách (số lượng mỗi thùng) của mã hàng. VD 550 cái, 20 cái/thùng = 27 thùng + 10 lẻ
+const qcOf = ma => Number((itemView(ma) || {}).quy_cach) || 0;
+function packOf(ma, sl) {
+  const qc = qcOf(ma), q = Number(sl) || 0;
+  if (!(qc > 1) || q < qc - 1e-9) return null;
+  const t = Math.floor(q / qc + 1e-9), le = Math.round((q - t * qc) * 1e6) / 1e6;
+  return { qc, t, le };
+}
+function packTxt(ma, sl) {
+  const p = packOf(ma, sl);
+  return p ? `<b style="color:var(--ink)">${fmt(p.t)} thùng</b>${p.le ? " + " + fmt(p.le) + " lẻ" : " nguyên"} <span style="opacity:.75">(1 thùng = ${fmt(p.qc)})</span>` : "";
+}
 const nameOf = (ma, fb) => { const it = itemView(ma); return vnName(it) || fb || ""; };
 const ruleName = { FIFO: "FIFO · nhập trước xuất trước", FEFO: "FEFO · hạn dùng gần nhất trước", LIFO: "LIFO · nhập sau xuất trước" };
 
@@ -490,7 +502,7 @@ const cachedMe = () => { try { return JSON.parse(localStorage.getItem(LS_ME) || 
 let _refAt = 0;
 async function loadRef() {
   const [items, locs, custs, setRows, stk] = await Promise.all([
-    must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu,han_dung").order("ma")),
+    must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu,han_dung,quy_cach").order("ma")),
     must(sb.from("locations").select("ma,ghi_chu,cha,kien,loai").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
     must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat", "canh_bao_pct", "kk_start"])),
@@ -872,7 +884,8 @@ function stockRow(s, lots, open) {
       <div class="pc">${worst ? `<span class="dot ${worst}"></span>` : ""}<span class="code">${esc(s.ma)}</span>${low ? `<span class="chip bad" style="margin:0">Thấp</span>` : ""}<span>${where}</span></div></div>
     <div class="pq ${s.tong > 0 ? "" : "zero"}">${fmt(s.tong)}<small>${esc(s.dvt || "")}</small></div><span class="arr">›</span></div>
     <div class="pdet">${lots.map(l => `<div class="lot"><div class="info"><div class="vt code">${esc(l.vi_tri || "—")}</div>
-      <div class="mut"><b style="color:var(--ink)">${fmt(l.sl)}</b> ${esc(l.dvt || s.dvt || "")}${l.lo ? " · lô " + esc(l.lo) : ""} ${hsdChip(l.hsd)}</div></div>
+      <div class="mut"><b style="color:var(--ink)">${fmt(l.sl)}</b> ${esc(l.dvt || s.dvt || "")}${l.lo ? " · lô " + esc(l.lo) : ""} ${hsdChip(l.hsd)}</div>
+      ${packTxt(l.ma_hang, l.sl) ? `<div class="mut" style="margin-top:2px">📦 ${packTxt(l.ma_hang, l.sl)}</div>` : ""}</div>
       <button class="btn ghost sm fit" data-act="chuyen" data-id="${l.id}">Chuyển</button>
       <button class="btn sm fit" data-act="xuat" data-id="${l.id}">Xuất</button></div>`).join("")}
     ${lots.length ? "" : `<div class="mut" style="padding:8px 0">Chưa có tồn.</div>`}</div></div>`;
@@ -1234,8 +1247,9 @@ async function kkOverview(refetch) {
       });
       const locs = {};
       stock.forEach(r => {
-        const loc = r.vi_tri || "—", L = locs[loc] ||= { loc, n: 0, c: 0, sl: 0, slc: 0 };
+        const loc = r.vi_tri || "—", L = locs[loc] ||= { loc, n: 0, c: 0, sl: 0, slc: 0, thung: 0, le: 0 };
         const k = key(r.ma_hang, r.lo, r.vi_tri || ""); L.n++; L.sl += Number(r.sl);
+        const pk = packOf(r.ma_hang, r.sl); if (pk) L.thung += pk.t; if (!pk || pk.le > 0) L.le++;
         if ((left[k] || 0) > 0) { left[k]--; L.c++; L.slc += Number(r.sl); }
       });
       const list = Object.values(locs).map(L => ({ ...L, st: L.c === 0 ? "none" : L.c >= L.n ? "done" : "part", ...(last[L.loc] || {}) }));
@@ -1269,8 +1283,8 @@ async function kkOverview(refetch) {
   const chipSt = st => `<span class="chip ${st === "done" ? "ok" : st === "part" ? "warn" : st === "none" ? "bad" : "gray"} fit" style="margin:0">${st === "done" ? "✓ Đủ" : st === "part" ? "Dở" : st === "none" ? "Chưa kiểm" : "Trống"}</span>`;
   const unitRow = (code, own) => { const u = stat[code], lc = S.locs.find(l => l.ma === code) || {};
     const nm = lc.ghi_chu ? ` · ${lc.ghi_chu}` : "";
-    return u ? `<div class="kid ${own ? "own" : ""}" data-kl="${esc(code)}"><div style="flex:1;min-width:0">${own ? `<span class="tbadge p">HÀNG TRÊN PALLET</span>` : tbadge(code)}<span class="kc" style="min-width:0">${esc(code)}</span><span style="font-size:12px;color:var(--mut)">${esc(nm)}</span>
-        <div style="font-size:12.5px;color:var(--mut);margin-top:3px">${u.n} mã · SL ${fmt(u.sl)}${u.st !== "none" ? ` · đã kiểm ${u.c}/${u.n}` : ""}${u.by ? ` · ${esc(u.by)} ${esc(dmyt(u.at))}` : ""}</div></div>${chipSt(u.st)}</div>`
+    return u ? `<div class="kid ${own ? "own" : ""}" data-kl="${esc(code)}"><div style="flex:1;min-width:0">${own ? `<span class="tbadge p">TRỰC TIẾP TRÊN PALLET</span>` : tbadge(code)}<span class="kc" style="min-width:0">${esc(code)}</span><span style="font-size:12px;color:var(--mut)">${esc(nm)}</span>
+        <div style="font-size:12.5px;color:var(--mut);margin-top:3px">${u.n} mã · SL ${fmt(u.sl)}${u.thung ? ` · 📦 <b style="color:var(--ink)">${fmt(u.thung)} thùng nguyên</b>` : ""}${u.le ? ` · ${u.le} mã lẻ` : ""}${u.st !== "none" ? ` · đã kiểm ${u.c}/${u.n}` : ""}${u.by ? ` · ${esc(u.by)} ${esc(dmyt(u.at))}` : ""}</div></div>${chipSt(u.st)}</div>`
       : `<div class="kid" data-kl="${esc(code)}"><div style="flex:1;min-width:0">${tbadge(code)}<span class="kc" style="min-width:0">${esc(code)}</span><span style="font-size:12px;color:var(--mut)">${esc(nm)}</span>
         <div style="font-size:12.5px;color:var(--mut);margin-top:3px">Không có hàng trên sổ (chạm để kiểm / thêm hàng thừa)</div></div>${chipSt("empty")}</div>`; };
   const glist = showG.slice(0, 80).map(g => {
@@ -1291,7 +1305,7 @@ async function kkOverview(refetch) {
     <div class="stat" style="margin-top:8px"><div><span>Chưa kiểm</span><b style="color:var(--bad)">${none}</b></div><div><span>Dở</span><b style="color:var(--warn)">${part}</b></div><div><span>Đủ</span><b style="color:var(--ok)">${done}</b></div>
       <div><span>Kiện đủ</span><b>${kDone}/${nKien}</b></div><div><span>Dòng lệch</span><b style="color:${thieu + thua ? "var(--bad)" : "var(--ok)"}">${thieu + thua}</b></div></div>
     ${S.isAdmin ? `<p style="margin:10px 0 0"><button class="btn ghost sm2" id="kkreset">🔄 Bắt đầu đợt kiểm kê mới (từ hôm nay)</button></p>` : ""}
-    <div class="tree-hint"><span><span class="tbadge p" style="margin:0">PALLET</span> chứa kiện</span><span><span class="tbadge k" style="margin:0">KIỆN</span> nằm trong pallet</span><span><span class="tbadge v" style="margin:0">VỊ TRÍ</span> đơn lẻ</span></div>
+    <div class="tree-hint"><span><span class="tbadge p" style="margin:0">PALLET</span> hàng nguyên thùng + kiện</span><span><span class="tbadge k" style="margin:0">KIỆN 1,2…</span> đánh số, đựng hàng lẻ</span><span><span class="tbadge v" style="margin:0">VỊ TRÍ</span> đơn lẻ</span></div>
     <div class="seg" style="margin-top:10px">${[["all", `Tất cả (${groups.length})`], ["need", `Cần kiểm (${needG})`], ["done", `Đã đủ (${doneG})`]]
       .map(([k, t]) => `<button data-kf="${k}" class="${kf === k ? "on" : ""}">${t}</button>`).join("")}</div>
     <div id="kklocs" style="margin-top:8px">${glist}${showG.length > 80 ? `<div class="mut" style="text-align:center;padding:8px">… còn ${showG.length - 80} nhóm nữa. Gõ mã vị trí ở trên để mở.</div>` : ""}</div></div>`;
@@ -1335,12 +1349,16 @@ function kkCard(r) {
   const cls = !m ? "" : (m.st === "none" || Math.abs(d) > 1e-9 ? "diff" : "okc");
   return `<div class="kk ${cls}"><div class="row" style="align-items:flex-start"><div>
       <div class="nm">${esc(vnName(it) || r.ten)}</div>
-      <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${r.lo ? " · lô " + esc(r.lo) : ""} ${hsdChip(r.hsd)}</div></div>
+      <div class="mut"><span class="code">${esc(r.ma_hang)}</span>${r.lo ? " · lô " + esc(r.lo) : ""} ${hsdChip(r.hsd)}</div>
+      ${packTxt(r.ma_hang, r.sl) ? `<div class="mut" style="margin-top:3px">📦 ${packTxt(r.ma_hang, r.sl)}</div>` : ""}</div>
       <div class="fit" style="text-align:right"><div class="mut">Sổ sách</div><div class="tot">${fmt(r.sl)}</div><div class="mut">${esc(r.dvt || "")}</div></div></div>
     ${stTxt || extra ? `<div style="margin-top:6px">${stTxt}${extra}</div>` : ""}
     <div class="kact"><button class="btn ok" data-k="ok" data-id="${r.id}">✓ ĐỦ</button>
       <button class="btn ghost" data-k="edit" data-id="${r.id}">✎ Số thực tế</button>
       <button class="btn bad" data-k="none" data-id="${r.id}">Không có</button></div>
+    ${open === "edit" && qcOf(r.ma_hang) > 1 ? (() => { const qc = qcOf(r.ma_hang), q = m ? Number(m.qty) : Number(r.sl), t = Math.floor(q / qc + 1e-9), le = Math.round((q - t * qc) * 1e6) / 1e6;
+      return `<div class="grid2" style="margin-top:8px"><div><label style="margin-top:0">Số thùng (1 thùng = ${fmt(qc)})</label><input id="kt-${r.id}" type="text" data-num autocomplete="off" value="${t}"></div>
+        <div><label style="margin-top:0">Số lẻ</label><input id="kl-${r.id}" type="text" data-num autocomplete="off" value="${le}"></div></div>`; })() : ""}
     ${open === "edit" ? `<div class="row" style="margin-top:8px"><input id="kq-${r.id}" type="text" data-num autocomplete="off" placeholder="Số lượng thực tế" value="${m ? m.qty : r.sl}" enterkeyhint="done"><button class="btn fit" data-k="applyq" data-id="${r.id}">OK</button></div>` : ""}
     <div class="kmore"><button class="btn ghost sm2" data-k="dates" data-id="${r.id}">📅 Đổi NSX / HSD</button>
       <button class="btn ghost sm2" data-k="move" data-id="${r.id}">↦ Chuyển kiện khác</button>
@@ -1429,8 +1447,20 @@ function kkCount() {
     inp.focus();
   }
   list.onkeydown = e => {
-    if (e.key !== "Enter" || !e.target.id || !e.target.id.startsWith("kq-")) return;
+    if (e.key !== "Enter" || !/^(kq|kt|kl)-/.test(e.target.id || "")) return;
     const bt = $(`[data-k="applyq"][data-id="${e.target.id.slice(3)}"]`, list); if (bt) bt.click();
+  };
+  list.oninput = e => {   // nhập theo thùng + lẻ <-> tổng số lượng tự khớp nhau
+    const t = e.target, mm = /^(kt|kl|kq)-(\d+)$/.exec(t.id || ""); if (!mm) return;
+    const rid = mm[2], r = k.rows.find(x => String(x.id) === rid); if (!r) return;
+    const qc = qcOf(r.ma_hang); if (!(qc > 1)) return;
+    if (mm[1] === "kq") {
+      const q = Number(t.value) || 0, th = Math.floor(q / qc + 1e-9);
+      if ($(`#kt-${rid}`)) $(`#kt-${rid}`).value = th; if ($(`#kl-${rid}`)) $(`#kl-${rid}`).value = Math.round((q - th * qc) * 1e6) / 1e6;
+    } else {
+      const th = Number(($(`#kt-${rid}`) || {}).value) || 0, le = Number(($(`#kl-${rid}`) || {}).value) || 0;
+      $(`#kq-${rid}`).value = Math.round((th * qc + le) * 1e6) / 1e6;
+    }
   };
   list.onchange = e => {   // đổi NSX -> HSD tự tính theo số ngày hạn dùng của mã
     const t = e.target; if (!t.id || !t.id.startsWith("kn-")) return;
@@ -1470,7 +1500,7 @@ function locType(code) {
   if (/pallet/i.test(l.loai || "")) return ["PALLET", "p"];
   return ["VỊ TRÍ", "v"];
 }
-const tbadge = code => { const [t, c] = locType(code); return `<span class="tbadge ${c}">${t}</span>`; };
+const tbadge = code => { const [t, c] = locType(code); const l = S.locs.find(x => x.ma === code) || {}; return `<span class="tbadge ${c}">${t === "KIỆN" && l.kien ? "KIỆN " + l.kien : t}</span>`; };
 // Chuẩn hóa mã: IN HOA, bỏ khoảng trắng hai đầu, khoảng trắng giữa -> dấu gạch ngang
 const normCode = v => String(v || "").trim().toUpperCase().replace(/\s+/g, "-");
 // Đổi mã vị trí / pallet / kiện và ĐỒNG BỘ toàn bộ: danh mục, kiện bên trong, tồn kho, thẻ kho, phiếu cũ (PC cũng thấy ngay)

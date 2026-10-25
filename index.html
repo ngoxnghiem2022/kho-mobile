@@ -274,6 +274,22 @@ border-radius:999px;padding:9px 14px;font:700 13.5px inherit;min-height:40px}
 .kact{display:grid;grid-template-columns:1.1fr 1.25fr 1fr;gap:8px;margin-top:10px}
 .kact .btn{padding:12px 4px;font-size:14.5px;min-height:50px}
 .kmore{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+/* cảnh báo date */
+.al{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--mut);border-radius:14px;padding:11px 12px;margin:8px 0;box-shadow:var(--shadow)}
+.al.l0{border-left-color:var(--bad)}.al.l1{border-left-color:#f59e0b}.al.l2{border-left-color:#3b82f6}
+.al .top{display:flex;gap:10px;align-items:flex-start}
+.al .nm{flex:1;min-width:0;font-weight:700;font-size:14.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.al .qty{font-weight:800;font-size:18px;text-align:right;flex:none;line-height:1.05}
+.al .qty small{display:block;font-size:11px;font-weight:600;color:var(--mut)}
+.al .loc{display:inline-flex;align-items:center;gap:5px;background:var(--pri2);color:var(--pri-ink);border-radius:9px;padding:3px 10px;font:800 14px ui-monospace,Menlo,Consolas,monospace;margin:6px 6px 0 0}
+.al .meta{font-size:12px;color:var(--mut);margin-top:4px}
+.al .left{font-weight:700;font-size:13px;margin-top:6px}
+.al .left.l0{color:var(--bad)}.al .left.l1{color:var(--warn)}
+.al .acts{display:flex;gap:8px;margin-top:8px}
+.al .acts .btn{flex:1;min-height:42px;padding:8px}
+.abanner{display:flex;align-items:center;gap:10px;background:var(--warnbg);color:var(--warn);border-radius:14px;padding:11px 12px;margin:8px 0;font-weight:700;font-size:13.5px;cursor:pointer}
+.abanner b{font-size:18px}
+.abanner.bad{background:var(--badbg);color:var(--bad)}
 </style>
 </head>
 <body>
@@ -313,7 +329,7 @@ function renderRecent(box, onPick, onlyStock) {
   box.querySelectorAll("[data-r]").forEach(b => b.onclick = () => onPick(b.dataset.r));
 }
 
-const APP_VER = "v22";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
+const APP_VER = "v23";   // đổi số này mỗi khi cập nhật để biết máy đã lấy bản mới chưa
 const cfg = window.WMS_CONFIG;
 if (!cfg || !cfg.url || !cfg.anonKey) {
   document.getElementById("app").innerHTML = `<div class="login"><div class="logo">KHO</div>
@@ -453,7 +469,7 @@ async function loadRef() {
     must(sb.from("items").select("ma,ten,ten_vn,dvt,ton_toi_thieu,han_dung").order("ma")),
     must(sb.from("locations").select("ma,ghi_chu").eq("active", 1).order("ma")),
     must(sb.from("customers").select("ma,ten").order("ten")),
-    must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat"])),
+    must(sb.from("settings").select("key,value").in("key", ["hsd_canh_bao", "hsd_chu_y", "nguyen_tac_xuat", "canh_bao_pct"])),
     must(sb.from("v_stock_tong").select("ma,tong").gt("tong", 0)),
   ]);
   Object.assign(S, { items, locs, custs, inStock: new Map((stk || []).map(r => [r.ma, Number(r.tong)])) });
@@ -461,6 +477,9 @@ async function loadRef() {
   S.warnDays = Number(g.hsd_canh_bao) || 30;
   S.chuyDays = Number(g.hsd_chu_y) || 90;
   S.xuatRule = g.nguyen_tac_xuat || "FIFO";
+  S.pct0 = Number(g.canh_bao_pct) || 70;
+  S.pct = Number((() => { try { return localStorage.getItem("kho_pct"); } catch { return ""; } })()) || S.pct0;
+  S.dateCache = null;
   _refAt = Date.now();
   if (!S._shelled) { S._shelled = true; shell(); } else refreshCurrent();
 }
@@ -598,13 +617,14 @@ function viewStock() {
   $("#main").innerHTML = `${dlCust()}${dlLoc()}
     <div class="stickybar">
       <div class="searchwrap row" style="gap:8px"><div class="searchwrap" style="flex:1"><input id="q" type="search" placeholder="Tìm mã / tên hàng…" value="${esc(S.q)}" enterkeyhint="search"><button class="clr" id="clr" style="display:${S.q ? "block" : "none"}">×</button></div>${scanBtn("q")}</div>
-      <div class="row" style="margin-top:8px;gap:8px"><div class="seg" style="flex:1">${[["all","Có tồn"],["exp","Sắp hết hạn"],["min","Thấp"]]
+      <div class="row" style="margin-top:8px;gap:8px"><div class="seg" style="flex:1">${[["all","Có tồn"],["exp","⏰ Sắp hết hạn"],["min","Thấp"]]
         .map(([k, t]) => `<button data-f="${k}" class="${S.filter === k ? "on" : ""}">${t}</button>`).join("")}</div>
         <button class="btn ghost sm2 fit" id="vtog" title="Lọc theo vị trí">📍${S.viTri ? " " + esc(S.viTri) : ""}</button></div>
       <div class="row" id="vrow" style="margin-top:8px;display:${S.viTri ? "flex" : "none"}"><input id="vt" placeholder="Mã vị trí (VD A001)" value="${esc(S.viTri)}" autocapitalize="characters" enterkeyhint="search">${scanBtn("vt")}<button class="btn alt fit sm" id="vgo">Lọc</button></div>
     </div>
-    <div id="res"></div>`;
+    <div id="abn"></div><div id="res"></div>`;
   bindScan($("#main"));
+  if (S.filter !== "exp" && !S.q && !S.viTri) dateBanner();
   const onType = debounce(() => { S.offset = 0; loadStock(); }, 250);
   $("#q").oninput = e => { S.q = e.target.value.trim(); const c = $("#clr"); if (c) c.style.display = S.q ? "block" : "none"; onType(); };
   $("#clr").onclick = () => { S.q = ""; S.offset = 0; viewStock(); };
@@ -626,6 +646,7 @@ function pickerStock() {
 }
 async function loadStock(append) {
   const res = $("#res"); if (!res) return;
+  if (S.filter === "exp") return renderDateAlert();
   if (S.loading) return; S.loading = true;
   if (!append) { res.innerHTML = `<div class="empty">Đang tải…</div>`; S.by = {}; }
   try {
@@ -672,6 +693,96 @@ async function loadStock(append) {
     };
   } catch (e) { if (!append) res.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   S.loading = false;
+}
+// ------------------------------------------------------------------ CẢNH BÁO DATE theo % hạn dùng còn lại
+async function fetchDateLots() {
+  if (S.dateCache && Date.now() - S.dateCache.at < 5 * 60 * 1000) return S.dateCache.rows;
+  const out = []; let from = 0;
+  for (;;) {
+    const rows = await must(sb.from("v_stock").select("*").neq("hsd", "").gt("sl", 0).order("hsd").range(from, from + 999));
+    out.push(...rows); if (rows.length < 1000) break; from += 1000;
+  }
+  const t0 = today();
+  const rows = out.map(l => {
+    const it = itemView(l.ma_hang); let total = Number(it && it.han_dung) || 0;
+    if (!total && l.nsx) { const n = Math.round((new Date(l.hsd + "T00:00:00") - new Date(l.nsx + "T00:00:00")) / 864e5); if (n > 0) total = n; }
+    const con = Math.floor((new Date(l.hsd + "T00:00:00") - new Date(t0 + "T00:00:00")) / 864e5);
+    return { ...l, con, total, pct: total ? Math.max(0, Math.round(100 * con / total)) : null };
+  });
+  S.dateCache = { at: Date.now(), rows };
+  return rows;
+}
+const alertRows = (rows, pct) => rows.filter(r => r.con < 0 || (r.pct != null && r.pct <= pct))
+  .sort((a, b) => (a.con < 0 ? a.con : 1e6 + (a.pct ?? 999)) - (b.con < 0 ? b.con : 1e6 + (b.pct ?? 999)) || a.con - b.con);
+async function dateBanner() {
+  const box = $("#abn"); if (!box) return;
+  try {
+    const rows = await fetchDateLots(), a = alertRows(rows, S.pct), exp = a.filter(r => r.con < 0).length;
+    if (!a.length || !$("#abn")) return;
+    box.innerHTML = `<div class="abanner ${exp ? "bad" : ""}" id="abgo"><span style="font-size:22px">⏰</span>
+      <div style="flex:1"><b>${a.length}</b> dòng hàng sắp hết date (còn ≤ ${S.pct}% hạn dùng)${exp ? ` · <b>${exp}</b> đã hết hạn` : ""}</div><span>Xem ›</span></div>`;
+    $("#abgo").onclick = () => { S.filter = "exp"; S.offset = 0; viewStock(); };
+  } catch {}
+}
+const dateLevel = r => (r.con < 0 || (r.pct != null && r.pct <= 20)) ? 0 : (r.pct != null && r.pct <= 50) ? 1 : 2;
+function alertCard(r, showLoc) {
+  const lv = dateLevel(r), it = itemView(r.ma_hang), dv = r.dvt || (it && it.dvt) || "";
+  const left = r.con < 0 ? `Đã hết hạn ${-r.con} ngày` : `Còn ${r.con} ngày${r.pct != null ? " · " + r.pct + "% hạn dùng" : ""}`;
+  return `<div class="al l${lv}"><div class="top"><div class="nm">${esc(vnName(it) || r.ten)}</div>
+      <div class="qty">${fmt(r.sl)}<small>${esc(dv)}</small></div></div>
+    <div>${showLoc ? `<span class="loc">📍 ${esc(r.vi_tri || "—")}</span>` : ""}<span class="code mut">${esc(r.ma_hang)}</span></div>
+    <div class="left l${lv}">⏰ HSD ${esc(dmy(r.hsd))} · ${left}</div>
+    <div class="meta">${r.ngay_nhap ? "Nhập " + esc(dmy(r.ngay_nhap)) : ""}${r.nsx ? " · NSX " + esc(dmy(r.nsx)) : ""}${r.total ? " · hạn dùng " + r.total + " ngày" : ""}${r.lo ? " · lô " + esc(r.lo) : ""}</div>
+    <div class="acts"><button class="btn ghost sm" data-aa="chuyen" data-id="${r.id}">Chuyển</button><button class="btn sm" data-aa="xuat" data-id="${r.id}">Xuất</button></div></div>`;
+}
+async function renderDateAlert() {
+  const res = $("#res"); if (!res) return;
+  S.dmode = S.dmode || "level";
+  res.innerHTML = `<div class="empty">Đang tính cảnh báo date…</div>`;
+  try {
+    const all = await fetchDateLots(); if (!$("#res")) return;
+    const q = (S.q || "").toLowerCase(), vt = (S.viTri || "").toLowerCase();
+    const known = all.filter(r => r.con >= 0 && r.pct == null).length;
+    let a = alertRows(all, S.pct);
+    if (q) a = a.filter(r => `${r.ma_hang} ${r.ten} ${vnName(itemView(r.ma_hang))}`.toLowerCase().includes(q));
+    if (vt) a = a.filter(r => String(r.vi_tri || "").toLowerCase().includes(vt));
+    const nExp = a.filter(r => r.con < 0).length;
+    const chips = [50, 60, 70, 80, 90, 100];
+    let body = "";
+    if (S.dmode === "loc") {
+      const by = {}; a.forEach(r => (by[r.vi_tri || "—"] ||= []).push(r));
+      body = Object.keys(by).sort((x, y) => natCmp(x, y)).map(k => `<div class="vday" style="display:flex;justify-content:space-between"><span>📍 ${esc(k)}</span><span>${by[k].length} dòng</span></div>${by[k].map(r => alertCard(r, false)).join("")}`).join("");
+    } else body = a.map(r => alertCard(r, true)).join("");
+    res.innerHTML = `<div class="card" style="margin:8px 0"><div class="head"><h3>⏰ Cảnh báo date</h3></div>
+      <div class="mut">Hiện hàng đã hết hạn hoặc còn ≤ <b style="color:var(--ink)">${S.pct}%</b> hạn dùng</div>
+      <div class="tplbar" style="margin-top:8px">${chips.map(c => `<button type="button" class="tpl ${S.pct === c ? "on" : ""}" data-pct="${c}">${c}%</button>`).join("")}</div>
+      <div class="row" style="margin-top:8px;gap:8px;align-items:center"><span class="mut fit" style="white-space:nowrap;font-weight:600">Cảnh báo khi còn ≤</span>
+        <input id="pctin" type="text" data-num autocomplete="off" value="${S.pct}" style="max-width:84px;text-align:center;font-weight:800;font-size:18px"><span class="mut fit" style="font-weight:600">% hạn dùng</span>
+        <button class="btn sm fit" id="pctok">Áp dụng</button></div>
+      <div class="seg" style="margin-top:10px"><button data-m="level" class="${S.dmode === "level" ? "on" : ""}">Theo mức độ</button><button data-m="loc" class="${S.dmode === "loc" ? "on" : ""}">Theo vị trí / kiện</button></div>
+      ${S.isAdmin ? `<p style="margin:10px 0 0"><button class="btn ghost sm2" id="pctsave">💾 Dùng ${S.pct}% này cho cả kho (PC + điện thoại)</button></p>` : ""}</div>
+      <div class="sumbar"><span>${a.length} dòng · ${nExp} đã hết hạn</span><span>${known ? known + " dòng chưa rõ hạn dùng" : ""}</span></div>
+      <div id="alist">${body || `<div class="empty">🎉 Không có hàng nào ≤ ${S.pct}% hạn dùng.</div>`}</div>`;
+    const setPct = raw => {
+      const v = Math.round(Number(String(raw).replace(",", ".")));
+      if (String(raw).trim() === "" || !(v >= 0 && v <= 100)) return toast("Nhập số % từ 0 đến 100.", true);
+      S.pct = v; try { localStorage.setItem("kho_pct", String(v)); } catch {} renderDateAlert();
+    };
+    $$(".tpl[data-pct]", res).forEach(b => b.onclick = () => setPct(b.dataset.pct));
+    $("#pctok", res).onclick = () => setPct($("#pctin", res).value);
+    $("#pctin", res).onkeydown = e => { if (e.key === "Enter") setPct(e.target.value); };
+    $("#pctin", res).onfocus = e => e.target.select();
+    $$(".seg button[data-m]", res).forEach(b => b.onclick = () => { S.dmode = b.dataset.m; renderDateAlert(); });
+    if ($("#pctsave")) $("#pctsave").onclick = async () => {
+      try { await must(sb.from("settings").upsert({ key: "canh_bao_pct", value: String(S.pct) })); S.pct0 = S.pct; toast(`Đã lưu ${S.pct}% cho cả kho (PC cũng dùng giá trị này).`); }
+      catch (e) { toast(e.message, true); }
+    };
+    $("#alist").onclick = e => {
+      const b = e.target.closest("[data-aa]"); if (!b) return;
+      const lot = all.find(l => String(l.id) === b.dataset.id); if (!lot) return;
+      b.dataset.aa === "xuat" ? sheetIssue(lot) : sheetMove(lot);
+    };
+  } catch (e) { if ($("#res")) $("#res").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
 function hsdChip(hsd) {
   if (!hsd) return `<span class="chip gray">Không HSD</span>`;
@@ -1392,17 +1503,94 @@ async function openPickScreen(v, lines) {
           ${r.so_sach != null ? `<div style="text-align:right;margin-top:2px">${(() => { const d = Number(r.sl) - Number(r.so_sach);
               return Math.abs(d) < 1e-9 ? `<span class="chip ok" style="margin:0">Đủ</span>` : `<span class="chip ${d < 0 ? "bad" : "warn"}" style="margin:0">${d < 0 ? "Thiếu " + fmt(-d) : "Thừa " + fmt(d)}</span>`; })()}
               <div class="mut">sổ sách ${fmt(r.so_sach)}</div></div>` : ""}</div></div>`).join("")}</div>
-      ${canDelete ? `<p style="margin:20px 0 8px;text-align:center"><button class="btn bad sm" id="pundo">🗑 Xóa phiếu (hoàn lại tồn kho)</button></p>` : ""}
+      ${canDelete && !draft ? `<p style="margin:20px 0 6px;text-align:center"><button class="btn alt" id="pedit" style="width:100%">✎ Sửa phiếu</button></p>` : ""}
+      ${canDelete ? `<p style="margin:8px 0 8px;text-align:center"><button class="btn bad sm" id="pundo">🗑 Xóa phiếu (hoàn lại tồn kho)</button></p>` : ""}
     </div>`;
   document.body.append(el);
-  const close = () => { el.remove(); if (S.tab === "nhat") loadPickList(false); else if (S.tab === "phieu") loadVouchers(false); };
+  const close = () => { el.remove(); if (S.tab === "nhat") loadPickList(false); else if (S.tab === "phieu") loadVouchers(false); else if (S.tab === "ton") { S.dateCache = null; loadStock(false); } };
   $("#pback", el).onclick = close;
+  if ($("#pedit", el)) $("#pedit", el).onclick = () => { el.remove(); openEditVoucher(v, lines, close); };
   const u = $("#pundo", el);
   if (u) u.onclick = async () => {
     if (!confirm(`Xóa phiếu ${v.so}?\nTồn kho sẽ được hoàn lại như trước khi có phiếu này.`)) return;
     busy(u, true, "Đang xóa…");
     try { await rpc("undo_voucher", { p_so: v.so }); toast(`Đã xóa phiếu ${v.so}`); vibrate(20); refreshRef(true); close(); }
     catch (e) { toast(e.message, true); busy(u, false); }
+  };
+}
+
+// ------------------------------------------------------------------ SỬA PHIẾU ĐÃ GHI SỔ
+function openEditVoucher(v, lines) {
+  const canLines = v.loai === "NHAP" || v.loai === "XUAT", isN = v.loai === "NHAP";
+  const E = lines.map(l => ({ ma_hang: l.ma_hang, lo: l.lo || "", nsx: l.nsx || "", hsd: l.hsd || "", vi_tri: l.vi_tri || "", sl: Number(l.sl) }));
+  const orig = JSON.stringify(E);
+  const el = document.createElement("div"); el.className = "pickscreen";
+  el.innerHTML = `<div class="ph"><div class="t"><button class="tb btn sm fit" id="eback" style="background:rgba(255,255,255,.16);color:#fff;min-height:38px">‹ Hủy sửa</button><b>Sửa phiếu</b></div>
+    <div class="sub"><span class="code">${esc(v.so)}</span> · ${esc(LOAI_NAME[v.loai] || v.loai)}</div></div>
+    <div class="pl"><div class="card" style="margin-top:0"><label style="margin-top:0">Tên phiếu</label><input id="e-title" value="${esc(v.ghi_chu || "")}" placeholder="VD: Đơn hàng dư ngày 21/10/2026">
+      <label>${v.loai === "XUAT" ? "Nơi nhận" : "Nhà cung cấp"}</label><input id="e-dt" value="${esc(v.doi_tac || "")}">
+      ${canLines ? `<label>Ngày phiếu</label><input id="e-date" type="date" value="${esc(v.ngay)}">` : ""}</div>
+      ${canLines ? `<div class="section">Dòng hàng</div><div id="e-lines"></div>${isN ? `<p><button class="btn alt" id="e-add" style="width:100%">＋ Thêm dòng</button></p>` : ""}
+        <div class="hintline">Sửa số lượng / vị trí / ngày sẽ hoàn lại tồn rồi ghi lại cho đúng. Nếu hàng của phiếu này đã được xuất đi thì chỉ sửa được tên phiếu.</div>`
+        : `<div class="hintline">Loại phiếu này chỉ sửa được tên phiếu. Muốn đổi dòng hàng hãy xóa rồi lập lại.</div>`}
+      <div class="pad-act"></div></div>
+    <div class="actbar" style="bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom))"><button class="btn" id="esave">💾 LƯU THAY ĐỔI</button></div>`;
+  document.body.append(el);
+  const back = () => { el.remove(); voucherDetail(v.so); };
+  $("#eback", el).onclick = back;
+  const draw = () => {
+    const box = $("#e-lines", el); if (!box) return;
+    box.innerHTML = E.map((l, i) => `<div class="kk"><div class="row" style="align-items:flex-start"><div><div class="nm">${esc(nameOf(l.ma_hang))}</div>
+        <div class="mut"><span class="code">${esc(l.ma_hang)}</span>${!isN && l.hsd ? " · HSD " + esc(l.hsd) : ""}</div></div>
+        <button class="btn bad sm fit" data-rm="${i}">✕</button></div>
+      <div class="grid2"><div><label>Số lượng</label><input type="text" data-num data-f="sl" data-i="${i}" value="${l.sl}"></div>
+        <div><label>Vị trí</label>${isN ? `<input data-f="vi_tri" data-i="${i}" autocapitalize="characters" value="${esc(l.vi_tri)}" placeholder="trống = chưa xếp">` : `<div class="code" style="padding-top:12px;font-size:16px">${esc(l.vi_tri || "—")}</div>`}</div></div>
+      ${isN ? `<div class="grid2"><div><label>NSX</label><input type="date" data-f="nsx" data-i="${i}" value="${esc(l.nsx)}"></div>
+        <div><label>HSD</label><input type="date" data-f="hsd" data-i="${i}" value="${esc(l.hsd)}"></div></div>` : ""}</div>`).join("") || `<div class="empty">Chưa còn dòng nào.</div>`;
+  };
+  draw();
+  const lb = $("#e-lines", el);
+  if (lb) {
+    lb.oninput = e => { const t = e.target, i = t.dataset.i; if (i == null) return; E[i][t.dataset.f] = t.dataset.f === "sl" ? Number(t.value) : (t.dataset.f === "vi_tri" ? t.value.trim().toUpperCase() : t.value); };
+    lb.onchange = e => {
+      const t = e.target; if (t.dataset.f !== "nsx") return;
+      const days = Number((itemView(E[t.dataset.i].ma_hang) || {}).han_dung) || 0;
+      if (days > 0 && t.value) { E[t.dataset.i].hsd = addDaysIso(t.value, days); draw(); }
+    };
+    lb.onclick = e => { const b = e.target.closest("[data-rm]"); if (!b) return; E.splice(Number(b.dataset.rm), 1); draw(); };
+  }
+  if ($("#e-add", el)) $("#e-add", el).onclick = () => sheet(`<h3>＋ Thêm dòng vào phiếu</h3>
+      <label>Mã hàng</label><div class="row"><input id="am" autocapitalize="characters" placeholder="Quét / gõ mã hoặc tên">${scanBtn("am")}</div><div id="amp"></div>
+      <label>Số lượng</label><input id="aq" type="text" data-num autocomplete="off">
+      <div class="grid2"><div><label>NSX</label><input id="an" type="date"></div><div><label>HSD</label><input id="ah" type="date"></div></div>
+      <label>Vị trí</label><input id="av" autocapitalize="characters" placeholder="trống = chưa xếp">
+      <p style="margin-top:12px"><button class="btn" id="aok" style="width:100%">Thêm</button></p>`, (sh, close) => {
+    const days = () => Number((itemView($("#am", sh).value) || {}).han_dung) || 0;
+    $("#am", sh).oninput = e => renderItemSuggest($("#amp", sh), e.target.value, ma => { $("#am", sh).value = ma; $("#am", sh).dispatchEvent(new Event("input")); $("#aq", sh).focus(); });
+    $("#an", sh).onchange = () => { const d = days(); if (d && $("#an", sh).value) $("#ah", sh).value = addDaysIso($("#an", sh).value, d); };
+    $("#aok", sh).onclick = () => {
+      const it = itemView($("#am", sh).value), q = Number($("#aq", sh).value);
+      if (!it) return toast("Mã hàng chưa có trong danh mục.", true);
+      if (!(q > 0)) return toast("Nhập số lượng > 0.", true);
+      E.push({ ma_hang: it.ma, lo: "", nsx: $("#an", sh).value, hsd: $("#ah", sh).value, vi_tri: $("#av", sh).value.trim().toUpperCase(), sl: q });
+      close(); draw();
+    };
+  });
+  $("#esave", el).onclick = async () => {
+    const title = $("#e-title", el).value.trim(), dt = $("#e-dt", el).value.trim(), btn = $("#esave", el);
+    try {
+      if (canLines) {
+        if (!E.length) return toast("Phiếu phải còn ít nhất 1 dòng. Muốn bỏ hết thì hãy xóa phiếu.", true);
+        if (E.some(l => !(l.sl > 0))) return toast("Số lượng mỗi dòng phải > 0.", true);
+      }
+      const ngay = canLines ? $("#e-date", el).value : v.ngay;
+      const linesChanged = canLines && (JSON.stringify(E) !== orig || ngay !== v.ngay);
+      busy(btn, true, "Đang lưu…");
+      if (linesChanged) await rpc("edit_voucher", { p_so: v.so, p_ghi_chu: title, p_doi_tac: dt, p_ngay: ngay, p_lines: E.map(l => ({ ...l, ghi_chu: title })) });
+      else await rpc("update_voucher_info", { p_so: v.so, p_ghi_chu: title, p_doi_tac: dt });
+      toast("Đã lưu thay đổi"); vibrate(20); S.dateCache = null; refreshRef(true); el.remove(); voucherDetail(v.so);
+      if (S.tab === "phieu") loadVouchers(false); if (S.tab === "nhat") loadPickList(false);
+    } catch (e) { toast(e.message, true); busy(btn, false); }
   };
 }
 
